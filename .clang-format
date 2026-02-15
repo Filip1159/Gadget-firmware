@@ -1,0 +1,26 @@
+BasedOnStyle: Google
+Language: Cpp
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+BreakBeforeBraces: Attach
+
+# ZMIEŃ TO:
+Cpp11BracedListStyle: false
+
+# UPEWNIJ SIĘ, ŻE TO JEST WŁĄCZONE:
+SpacesInBracedList: true
+
+# To można usunąć lub zostawić, ale przy "false" powyżej jest mniej istotne:
+SpacesInContainerLiterals: true
+
+BinPackArguments: false
+BinPackParameters: false
+AlignAfterOpenBracket: BlockIndent
+
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+ColumnLimit: 120

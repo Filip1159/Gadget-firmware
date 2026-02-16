@@ -24,6 +24,12 @@ class PidController {
     PidController(pcnt_unit_t pcntUnit, uint8_t motorPin1, uint8_t motorPin2);
     void loop();
     void reset();
+    void setPid(float P, float I, float D) {
+        reset();
+        this->Kp = P;
+        this->Ki = I;
+        this->Kd = D;
+    }
     void setTargetSpeed(WheelDirection direction, uint16_t targetSpeed) {
         this->direction = direction;
         this->targetSpeed = targetSpeed;

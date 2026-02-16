@@ -47,4 +47,5 @@ class SteeringManager {
     void setDirection(String direction) {
         this->direction = directionStrings.at(direction);
     }
+    void setPid(float P, float I, float D);
 };

@@ -21,6 +21,17 @@ void read_dual_sensors() {
 void updateSteering(String message) {
     if (message.startsWith("SPEED")) {
         steeringManager.setSpeed(message.substring(5).toInt());
+    } else if (message.startsWith("PID")) {
+        message = message.substring(4);
+        String P = message.substring(0, message.indexOf(" "));
+        message = message.substring(P.length() + 1);
+        String I = message.substring(0, message.indexOf(" "));
+        message = message.substring(I.length() + 1);
+        String D = message.substring(0, message.indexOf(" "));
+        Serial.println(P);
+        Serial.println(I);
+        Serial.println(D);
+        steeringManager.setPid(P.toFloat(), I.toFloat(), D.toFloat());
     } else {
         steeringManager.resetPids();
         steeringManager.setDirection(message);

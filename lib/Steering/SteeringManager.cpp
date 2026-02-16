@@ -58,6 +58,11 @@ void SteeringManager::resetPids() {
     right->reset();
 }
 
+void SteeringManager::setPid(float P, float I, float D) {
+    left->setPid(P, I, D);
+    right->setPid(P, I, D);
+}
+
 void SteeringManager::loop() {
     switch (direction) {
         case FORWARD:
@@ -79,6 +84,8 @@ void SteeringManager::loop() {
         case STOP:
             left->setTargetSpeed(WHEEL_FORWARD, 0);
             right->setTargetSpeed(WHEEL_FORWARD, 0);
+            left->reset();
+            right->reset();
             break;
         case RIGHT:
             left->setTargetSpeed(WHEEL_FORWARD, speed);

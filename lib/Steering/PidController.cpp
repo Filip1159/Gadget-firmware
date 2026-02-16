@@ -9,6 +9,12 @@ void PidController::reset() {
 }
 
 void PidController::loop() {
+    if (targetSpeed == 0) {
+        analogWrite(motorPin1, 0);
+        analogWrite(motorPin2, 0);
+        return;
+    }
+
     int16_t count = 0;
     pcnt_get_counter_value(pcntUnit, &count);
     pcnt_counter_clear(pcntUnit);
@@ -41,10 +47,10 @@ void PidController::loop() {
     );
 
     if (direction == WHEEL_FORWARD) {
-        digitalWrite(motorPin1, LOW);
+        analogWrite(motorPin1, 0);
         analogWrite(motorPin2, output);
     } else {
         analogWrite(motorPin1, output);
-        digitalWrite(motorPin2, LOW);
+        analogWrite(motorPin2, 0);
     }
 }

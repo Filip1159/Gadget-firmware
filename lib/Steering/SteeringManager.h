@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <DriveDirection.h>
 #include <PidController.h>
 #include <driver/pcnt.h>
 
@@ -19,9 +20,31 @@ class SteeringManager {
    private:
     PidController* left;
     PidController* right;
+    uint16_t speed = 1000;
+    DriveDirection direction = FORWARD;
+    // clang-format off
+    std::map<String, DriveDirection> directionStrings = { 
+        { "FORWARD", FORWARD },
+        { "FORWARD_LEFT", FORWARD_LEFT },
+        { "FORWARD_RIGHT", FORWARD_RIGHT },
+        { "LEFT", LEFT },
+        { "STOP", STOP },
+        { "RIGHT", RIGHT },
+        { "BACKWARD", BACKWARD },
+        { "BACKWARD_LEFT", BACKWARD_LEFT },
+        { "BACKWARD_RIGHT", BACKWARD_RIGHT }
+    };
+    // clang-format on
 
    public:
     SteeringManager();
     void init();
     void loop();
+    void resetPids();
+    void setSpeed(uint16_t speed) {
+        this->speed = speed;
+    }
+    void setDirection(String direction) {
+        this->direction = directionStrings.at(direction);
+    }
 };

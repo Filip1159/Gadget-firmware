@@ -1,5 +1,7 @@
 #include <SteeringManager.h>
 
+#define TURNING_FACTOR 0.7
+
 SteeringManager::SteeringManager() {
     left = new PidController(PCNT_UNIT_0, LEFT_2_PIN, LEFT_1_PIN);
     right = new PidController(PCNT_UNIT_1, RIGHT_2_PIN, RIGHT_1_PIN);
@@ -51,7 +53,50 @@ void SteeringManager::init() {
     pcnt_counter_resume(PCNT_UNIT_1);
 }
 
+void SteeringManager::resetPids() {
+    left->reset();
+    right->reset();
+}
+
 void SteeringManager::loop() {
+    switch (direction) {
+        case FORWARD:
+            left->setTargetSpeed(WHEEL_FORWARD, speed);
+            right->setTargetSpeed(WHEEL_FORWARD, speed);
+            break;
+        case FORWARD_LEFT:
+            left->setTargetSpeed(WHEEL_FORWARD, speed * TURNING_FACTOR);
+            right->setTargetSpeed(WHEEL_FORWARD, speed);
+            break;
+        case FORWARD_RIGHT:
+            left->setTargetSpeed(WHEEL_FORWARD, speed);
+            right->setTargetSpeed(WHEEL_FORWARD, speed * TURNING_FACTOR);
+            break;
+        case LEFT:
+            left->setTargetSpeed(WHEEL_BACKWARD, speed);
+            right->setTargetSpeed(WHEEL_FORWARD, speed);
+            break;
+        case STOP:
+            left->setTargetSpeed(WHEEL_FORWARD, 0);
+            right->setTargetSpeed(WHEEL_FORWARD, 0);
+            break;
+        case RIGHT:
+            left->setTargetSpeed(WHEEL_FORWARD, speed);
+            right->setTargetSpeed(WHEEL_BACKWARD, speed);
+            break;
+        case BACKWARD:
+            left->setTargetSpeed(WHEEL_BACKWARD, speed);
+            right->setTargetSpeed(WHEEL_BACKWARD, speed);
+            break;
+        case BACKWARD_LEFT:
+            left->setTargetSpeed(WHEEL_BACKWARD, speed * TURNING_FACTOR);
+            right->setTargetSpeed(WHEEL_BACKWARD, speed);
+            break;
+        case BACKWARD_RIGHT:
+            left->setTargetSpeed(WHEEL_BACKWARD, speed);
+            right->setTargetSpeed(WHEEL_BACKWARD, speed * TURNING_FACTOR);
+            break;
+    }
     left->loop();
     right->loop();
 }

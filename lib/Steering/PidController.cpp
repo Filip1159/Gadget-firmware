@@ -3,19 +3,18 @@
 PidController::PidController(pcnt_unit_t pcntUnit, uint8_t motorPin1, uint8_t motorPin2)
     : pcntUnit(pcntUnit), motorPin1(motorPin1), motorPin2(motorPin2) {}
 
+void PidController::reset() {
+    integral = 0;
+    previousError = 0;
+}
+
 void PidController::loop() {
     int16_t count = 0;
     pcnt_get_counter_value(pcntUnit, &count);
+    pcnt_counter_clear(pcntUnit);
+    count = abs(count);
 
-    uint16_t overflowSafeCount = (uint16_t)count;
-    if (count < lastEncoderValue) {
-        overflowSafeCount += 32768;
-    }
-
-    uint16_t diff = overflowSafeCount - lastEncoderValue;
-    lastEncoderValue = (uint16_t)count;
-
-    float speed = diff / 0.1;  // assume loop running every 100ms
+    float speed = count / 0.1;  // assume loop running every 100ms
 
     float error = targetSpeed - speed;
 
@@ -38,9 +37,14 @@ void PidController::loop() {
 
     Serial.println(
         String(output) + " | " + Kp * error + " | " + Ki * integral + " | " + Kd * derivative + " || " + error + " | " +
-        speed + " | " + count + " | " + overflowSafeCount
+        speed + " | " + count
     );
 
-    analogWrite(motorPin1, output);
-    digitalWrite(motorPin2, LOW);
+    if (direction == WHEEL_FORWARD) {
+        digitalWrite(motorPin1, LOW);
+        analogWrite(motorPin2, output);
+    } else {
+        analogWrite(motorPin1, output);
+        digitalWrite(motorPin2, LOW);
+    }
 }

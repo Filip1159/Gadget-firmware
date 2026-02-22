@@ -21,7 +21,7 @@ class SteeringManager {
     PidController* left;
     PidController* right;
     uint16_t speed = 1000;
-    DriveDirection direction = FORWARD;
+    DriveDirection direction = STOP;
     // clang-format off
     std::map<String, DriveDirection> directionStrings = { 
         { "FORWARD", FORWARD },

@@ -10,14 +10,6 @@ unsigned long previousSteeringMillis = 0;
 unsigned long previousMillis = 0;
 bool ledState = false;
 
-void read_dual_sensors() {
-    uint16_t result[10];
-    distanceManager.measureAll(result);
-    for (uint8_t i = 0; i < 10; i++) {
-        connectionManager.send(String(distanceManager.directionToString(i)) + " " + result[i]);
-    }
-}
-
 void updateSteering(String message) {
     if (message.startsWith("SPEED")) {
         steeringManager.setSpeed(message.substring(5).toInt());
@@ -32,6 +24,12 @@ void updateSteering(String message) {
         Serial.println(I);
         Serial.println(D);
         steeringManager.setPid(P.toFloat(), I.toFloat(), D.toFloat());
+    } else if (message.startsWith("MEASURE")) {
+        uint16_t result[10];
+        distanceManager.measureAll(result);
+        for (uint8_t i = 0; i < 10; i++) {
+            connectionManager.send("MEASURE " + distanceManager.directionToString(i) + " " + result[i]);
+        }
     } else {
         steeringManager.resetPids();
         steeringManager.setDirection(message);
@@ -65,7 +63,5 @@ void loop() {
         previousMillis = currentMillis;
         ledState = !ledState;
         digitalWrite(LED_GREEN, ledState);
-
-        // read_dual_sensors();
     }
 }

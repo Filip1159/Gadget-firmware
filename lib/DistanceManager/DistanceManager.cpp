@@ -1,6 +1,8 @@
 #include <DistanceManager.h>
 #include <DistanceSensor.h>
 
+constexpr uint32_t MEASUREMENT_TASK_STACK_BYTES = 4096;
+
 // Wire names, indexed by SensorDirection (must match the frontend's protocol.ts).
 static const char* const kSensorNames[SENSOR_COUNT] = {
     "FRONT", "FRONT_LEFT_45", "FRONT_LEFT", "FRONT_RIGHT_45", "FRONT_RIGHT",
@@ -110,7 +112,7 @@ void DistanceManager::startMeasurementTask() {
     xTaskCreatePinnedToCore(
         measurementTask,        // Task function
         "MeasurementTask",      // Task name
-        4096,                   // Stack size
+        MEASUREMENT_TASK_STACK_BYTES,  // Stack size
         this,                   // Parameter passed to task
         1,                      // Priority
         &measurementTaskHandle, // Task handle

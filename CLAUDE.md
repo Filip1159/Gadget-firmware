@@ -1,13 +1,13 @@
 # Gadget-firmware (Arduino Nano ESP32)
 
-PlatformIO firmware for a 2-wheeled robot built on an **Arduino Nano ESP32** (ESP32-S3, dual-core). It drives two DC gear motors with encoders via PID, reads 10x VL53L0X time-of-flight distance sensors, and exposes both over a WebSocket server to the companion frontend app (Gadget-UI, repo folder `the-sneaky-spy`, a separate repo — see "Companion frontend" below).
+PlatformIO firmware for a 2-wheeled robot built on an **Arduino Nano ESP32** (ESP32-S3, dual-core). It drives two DC gear motors with encoders via PID, reads 10x VL53L0X time-of-flight distance sensors, and exposes both over a WebSocket server to the companion frontend app (Gadget-UI, repo folder `Gadget-UI`, a separate repo — see "Companion frontend" below).
 
 ## Build / upload
 
 - Build system: PlatformIO (`platformio.ini`), environment `arduino_nano_esp32`.
 - Framework: Arduino, platform `espressif32` (not version-pinned yet). `build_flags` has `-Wall -Wextra`; `-DDEBUG_PID` (commented out) enables per-tick PID output on serial.
 - Library deps: `adafruit/Adafruit_VL53L0X@1.2.4`, `links2004/WebSockets@2.7.3`.
-- Upload: currently via serial (`upload_port = COM14`, 115200 baud). OTA upload is wired up in firmware (`ArduinoOTA`); flash over WiFi with `pio run -e ota -t upload` (env `ota` extends the USB one, port `gadget.local`; override with `--upload-port <ip>`).
+- Upload: currently over USB (`upload_port = COM14`, DFU protocol, so no upload baud rate). OTA upload is wired up in firmware (`ArduinoOTA`); flash over WiFi with `pio run -e ota -t upload` (env `ota` extends the USB one, port `gadget.local`; override with `--upload-port <ip>`).
 - Lint: `pio check` (cppcheck, our code only; keep it at zero medium/high findings). Build with `-Wall -Wextra`.
 - Serial monitor: 115200 baud, prints connection status, OTA progress, and PID debug (`P`/`I`/`D` values on `PID` command).
 
@@ -62,4 +62,4 @@ No JSON — every message is a plain space-delimited ASCII string. The server is
 
 ## Companion frontend
 
-The browser control UI lives in a separate repo: `C:\Users\fwisn\Documents\the-sneaky-spy` (see its own `CLAUDE.md`). It connects directly to `ws://<robot-ip>:88` and implements the other half of the schema above.
+The browser control UI lives in a separate repo: `C:\Users\fwisn\Documents\Gadget-UI` (see its own `CLAUDE.md`). It connects directly to `ws://<robot-ip>:88` and implements the other half of the schema above.

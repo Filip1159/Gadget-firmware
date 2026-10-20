@@ -5,6 +5,9 @@
 #include <driver/pcnt.h>
 #include <stdint.h>
 
+// Maximum analogWrite duty (8-bit PWM).
+constexpr float PWM_MAX = 255.0f;
+
 class PidController {
    private:
     float Kp = 0.15;
@@ -20,6 +23,7 @@ class PidController {
     WheelDirection direction = WHEEL_FORWARD;
     int16_t targetSpeed = 0;
     unsigned long lastLoopMicros = 0;
+    int16_t lastRawCount = 0;
 
    public:
     PidController(pcnt_unit_t pcntUnit, uint8_t motorPin1, uint8_t motorPin2);

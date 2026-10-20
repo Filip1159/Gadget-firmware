@@ -11,10 +11,17 @@ void PidController::reset() {
 void PidController::loop() {
     // Always consume the encoder counter, even when stopped, so pulses from coasting or
     // being pushed don't show up as a huge speed on the first tick after a new command.
-    int16_t count = 0;
-    pcnt_get_counter_value(pcntUnit, &count);
-    pcnt_counter_clear(pcntUnit);
-    count = abs(count);
+    // The counter keeps running and we diff against the previous reading, so no pulse can be
+    // lost between a read and a clear. It is only cleared when it nears its hardware limit
+    // (+-32767), which loses at most the few pulses of that one tick.
+    int16_t raw = 0;
+    pcnt_get_counter_value(pcntUnit, &raw);
+    int16_t count = abs(static_cast<int16_t>(raw - lastRawCount));
+    lastRawCount = raw;
+    if (abs(raw) > 16000) {
+        pcnt_counter_clear(pcntUnit);
+        lastRawCount = 0;
+    }
 
     // Real elapsed time instead of assuming exactly 100ms between ticks.
     unsigned long now = micros();
@@ -40,11 +47,11 @@ void PidController::loop() {
     previousError = error;
 
     float unclamped = Kp * error + Ki * integralNext + Kd * derivative;
-    float output = constrain(unclamped, 0.0f, 255.0f);
+    float output = constrain(unclamped, 0.0f, PWM_MAX);
 
     // Conditional integration anti-windup: keep integrating unless the output is saturated
     // and the error would push it further into saturation.
-    bool saturatedHigh = unclamped > 255.0f && error > 0;
+    bool saturatedHigh = unclamped > PWM_MAX && error > 0;
     bool saturatedLow = unclamped < 0.0f && error < 0;
     if (!saturatedHigh && !saturatedLow) {
         integral = integralNext;

@@ -1,11 +1,14 @@
 #include <SteeringManager.h>
 
-#define TURNING_FACTOR 0.7
+// Inner-wheel speed scale when turning while driving.
+constexpr float TURNING_FACTOR = 0.7f;
+// Glitch filter on the encoder inputs, in APB clock cycles.
+constexpr uint16_t PCNT_FILTER_CYCLES = 100;
+constexpr uint32_t CONTROL_TASK_STACK_BYTES = 4096;
 
-SteeringManager::SteeringManager() {
+SteeringManager::SteeringManager()
+    : left(PCNT_UNIT_0, LEFT_2_PIN, LEFT_1_PIN), right(PCNT_UNIT_1, RIGHT_2_PIN, RIGHT_1_PIN) {
     mutex = xSemaphoreCreateMutex();
-    left = new PidController(PCNT_UNIT_0, LEFT_2_PIN, LEFT_1_PIN);
-    right = new PidController(PCNT_UNIT_1, RIGHT_2_PIN, RIGHT_1_PIN);
 }
 
 void SteeringManager::init() {
@@ -41,9 +44,9 @@ void SteeringManager::init() {
     pcnt_unit_config(&pcnt_config_left);
     pcnt_unit_config(&pcnt_config_right);
 
-    pcnt_set_filter_value(PCNT_UNIT_0, 100);
+    pcnt_set_filter_value(PCNT_UNIT_0, PCNT_FILTER_CYCLES);
     pcnt_filter_enable(PCNT_UNIT_0);
-    pcnt_set_filter_value(PCNT_UNIT_1, 100);
+    pcnt_set_filter_value(PCNT_UNIT_1, PCNT_FILTER_CYCLES);
     pcnt_filter_enable(PCNT_UNIT_1);
 
     pcnt_counter_pause(PCNT_UNIT_0);
@@ -69,8 +72,8 @@ struct Lock {
 
 void SteeringManager::resetPids() {
     Lock lock(mutex);
-    left->reset();
-    right->reset();
+    left.reset();
+    right.reset();
 }
 
 void SteeringManager::setSpeed(uint16_t newSpeed) {
@@ -85,15 +88,15 @@ uint16_t SteeringManager::getSpeed() {
 
 void SteeringManager::setPid(float P, float I, float D) {
     Lock lock(mutex);
-    left->setPid(P, I, D);
-    right->setPid(P, I, D);
+    left.setPid(P, I, D);
+    right.setPid(P, I, D);
 }
 
 void SteeringManager::getPid(float& P, float& I, float& D) {
     Lock lock(mutex);
-    P = left->getKp();
-    I = left->getKi();
-    D = left->getKd();
+    P = left.getKp();
+    I = left.getKi();
+    D = left.getKd();
 }
 
 bool SteeringManager::isMoving() {
@@ -106,8 +109,8 @@ bool SteeringManager::setDirection(const String& name) {
     for (const DriveDirectionName& entry : kDriveDirectionNames) {
         if (name == entry.name) {
             if (entry.direction != direction) {
-                left->reset();  // only on an actual direction change; repeats must not wipe the integral
-                right->reset();
+                left.reset();  // only on an actual direction change; repeats must not wipe the integral
+                right.reset();
             }
             direction = entry.direction;
             lastCommandMillis = millis();
@@ -133,7 +136,7 @@ void SteeringManager::startTask() {
     xTaskCreatePinnedToCore(
         controlTask,    // Task function
         "ControlTask",  // Task name
-        4096,           // Stack size
+        CONTROL_TASK_STACK_BYTES,  // Stack size
         this,           // Parameter passed to task
         2,              // Priority: above loop() (1), so network I/O cannot delay a tick
         NULL,           // Task handle (not needed)
@@ -160,44 +163,44 @@ void SteeringManager::tickLocked() {
 
     switch (direction) {
         case FORWARD:
-            left->setTargetSpeed(WHEEL_FORWARD, speed);
-            right->setTargetSpeed(WHEEL_FORWARD, speed);
+            left.setTargetSpeed(WHEEL_FORWARD, speed);
+            right.setTargetSpeed(WHEEL_FORWARD, speed);
             break;
         case FORWARD_LEFT:
-            left->setTargetSpeed(WHEEL_FORWARD, speed * TURNING_FACTOR);
-            right->setTargetSpeed(WHEEL_FORWARD, speed);
+            left.setTargetSpeed(WHEEL_FORWARD, speed * TURNING_FACTOR);
+            right.setTargetSpeed(WHEEL_FORWARD, speed);
             break;
         case FORWARD_RIGHT:
-            left->setTargetSpeed(WHEEL_FORWARD, speed);
-            right->setTargetSpeed(WHEEL_FORWARD, speed * TURNING_FACTOR);
+            left.setTargetSpeed(WHEEL_FORWARD, speed);
+            right.setTargetSpeed(WHEEL_FORWARD, speed * TURNING_FACTOR);
             break;
         case LEFT:
-            left->setTargetSpeed(WHEEL_BACKWARD, speed);
-            right->setTargetSpeed(WHEEL_FORWARD, speed);
+            left.setTargetSpeed(WHEEL_BACKWARD, speed);
+            right.setTargetSpeed(WHEEL_FORWARD, speed);
             break;
         case STOP:
-            left->setTargetSpeed(WHEEL_FORWARD, 0);
-            right->setTargetSpeed(WHEEL_FORWARD, 0);
-            left->reset();
-            right->reset();
+            left.setTargetSpeed(WHEEL_FORWARD, 0);
+            right.setTargetSpeed(WHEEL_FORWARD, 0);
+            left.reset();
+            right.reset();
             break;
         case RIGHT:
-            left->setTargetSpeed(WHEEL_FORWARD, speed);
-            right->setTargetSpeed(WHEEL_BACKWARD, speed);
+            left.setTargetSpeed(WHEEL_FORWARD, speed);
+            right.setTargetSpeed(WHEEL_BACKWARD, speed);
             break;
         case BACKWARD:
-            left->setTargetSpeed(WHEEL_BACKWARD, speed);
-            right->setTargetSpeed(WHEEL_BACKWARD, speed);
+            left.setTargetSpeed(WHEEL_BACKWARD, speed);
+            right.setTargetSpeed(WHEEL_BACKWARD, speed);
             break;
         case BACKWARD_LEFT:
-            left->setTargetSpeed(WHEEL_BACKWARD, speed * TURNING_FACTOR);
-            right->setTargetSpeed(WHEEL_BACKWARD, speed);
+            left.setTargetSpeed(WHEEL_BACKWARD, speed * TURNING_FACTOR);
+            right.setTargetSpeed(WHEEL_BACKWARD, speed);
             break;
         case BACKWARD_RIGHT:
-            left->setTargetSpeed(WHEEL_BACKWARD, speed);
-            right->setTargetSpeed(WHEEL_BACKWARD, speed * TURNING_FACTOR);
+            left.setTargetSpeed(WHEEL_BACKWARD, speed);
+            right.setTargetSpeed(WHEEL_BACKWARD, speed * TURNING_FACTOR);
             break;
     }
-    left->loop();
-    right->loop();
+    left.loop();
+    right.loop();
 }

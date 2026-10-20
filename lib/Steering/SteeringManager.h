@@ -29,8 +29,8 @@
 // touched while holding it.
 class SteeringManager {
    private:
-    PidController* left;
-    PidController* right;
+    PidController left;
+    PidController right;
     uint16_t speed = 1000;
     DriveDirection direction = STOP;
     unsigned long lastCommandMillis = 0;
@@ -42,7 +42,7 @@ class SteeringManager {
 
    public:
     SteeringManager();
-    SteeringManager(const SteeringManager&) = delete;  // owns raw pointers and a mutex
+    SteeringManager(const SteeringManager&) = delete;  // owns a mutex
     SteeringManager& operator=(const SteeringManager&) = delete;
     void init();
 

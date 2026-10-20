@@ -7,7 +7,7 @@
 
 class DistanceSensor {
    private:
-    Adafruit_VL53L0X* sensor;
+    Adafruit_VL53L0X sensor;
     int address;
     uint8_t shtPin;
     bool online = false;

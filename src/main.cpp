@@ -3,15 +3,14 @@
 #include <DistanceManager.h>
 #include <SteeringManager.h>
 
-#define STEERING_PERIOD_MS 100
 #define HEARTBEAT_PERIOD_MS 1000
+#define CONTROL_TASK_STALL_MS 2000
 
 ConnectionManager connectionManager;
 DistanceManager distanceManager;
 SteeringManager steeringManager;
 CommandHandler commandHandler(steeringManager, distanceManager, connectionManager);
 
-unsigned long previousSteeringMillis = 0;
 unsigned long previousHeartbeatMillis = 0;
 bool ledState = false;
 
@@ -31,6 +30,7 @@ void setup() {
     distanceManager.initAddresses();
     distanceManager.startMeasurementTask();  // Start measurement task on Core 0
     steeringManager.init();
+    steeringManager.startTask();  // PID + command timeout run in their own task (Core 1)
 
     // Loop watchdog: if loop() hangs for more than the task WDT timeout (5s) the board resets,
     // which releases the motor pins instead of leaving the last PWM running.
@@ -43,9 +43,11 @@ void loop() {
 
     unsigned long currentMillis = millis();
 
-    if (currentMillis - previousSteeringMillis >= STEERING_PERIOD_MS) {
-        previousSteeringMillis = currentMillis;
-        steeringManager.loop();
+    // If the control task is stuck nothing can stop the motors by software: reset the board,
+    // which releases the motor pins.
+    if (steeringManager.msSinceLastTick() > CONTROL_TASK_STALL_MS) {
+        Serial.println("Control task stalled, restarting");
+        ESP.restart();
     }
 
     if (currentMillis - previousHeartbeatMillis >= HEARTBEAT_PERIOD_MS) {

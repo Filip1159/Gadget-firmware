@@ -24,7 +24,7 @@ All `[x]` items are implemented and verified on the robot.
 - [x] Speed assumed exactly 100ms ticks. Now uses real elapsed time (`micros()`, clamped to 20-500ms, falls back to 100ms).
 - [x] `PidController` defaults (`direction = WHEEL_FORWARD`, `targetSpeed = 0`).
 - [ ] **PCNT read + clear is not atomic** (`pcnt_get_counter_value` then `pcnt_counter_clear`), so a few pulses between the two calls are lost. Small but systematic at high speed. Alternative: keep a running count and diff against the previous reading instead of clearing.
-- [ ] The PID still runs in the main loop, coupled to network I/O (a blocking TCP write delays a tick; the real `dt` now compensates for the maths but not for the jitter). Ideally its own FreeRTOS task or hardware timer.
+- [x] The PID ran in the main loop, coupled to network I/O. It now runs in its own FreeRTOS task (`SteeringManager::controlTask`, Core 1, priority 2, fixed 100ms period via `vTaskDelayUntil`); `SteeringManager` is thread-safe (one mutex) and the command timeout failsafe moved into the task. `loop()` restarts the board if the task stalls for 2s.
 
 ### 1.3 Sensors
 
@@ -40,7 +40,7 @@ All `[x]` items are implemented and verified on the robot.
 
 - [x] PID parsing was fragile. Now `sscanf` with strict validation (exactly 3 finite, non-negative floats); bad input gets `ERR invalid PID` instead of silently zeroing gains.
 - [x] `startsWith("SPEED")`/`("PID")` matched `SPEEDY`/`PIDX`. Prefixes now include the space.
-- [ ] **A slow or stalled client can still block the control loop.** The 10 blocking `broadcastTXT` calls per sweep became one `sendTXT` per ready client per sweep, but each is still a synchronous TCP write from the loop that runs the PID.
+- [x] A slow or stalled client could block the control loop. The PID and the command timeout no longer run in `loop()`, so a blocked TCP write only delays networking. [ ] The write itself is still synchronous in `loop()` (it can still delay OTA/WebSocket servicing and, past 5s, trip the loop watchdog).
 - [x] Measurement mode outlived the client. Continuous measurement now stops on disconnect (any client; fine for the single-client use case) and the `STATE` frame tells a reconnecting client the real state. **[cross-repo]**
 - [x] No length cap on text frames: anything over `MAX_MESSAGE_LENGTH` (64) is ignored.
 - [x] PID debug output on the hot path (String concatenation + serial per wheel per tick) is behind `-DDEBUG_PID` (commented line in `platformio.ini`).
@@ -77,14 +77,14 @@ All `[x]` items are implemented and verified on the robot.
 
 - [x] Failsafe stop on disconnect / command timeout / OTA start (see 1.1).
 - [ ] **Sensor-based protection:** the firmware has the data to refuse to drive into an obstacle (stop or clamp when `FRONT*` < N mm while moving forward; same for `BACK*`). Currently every decision is made by the human at 2-3Hz latency. Needs on-robot tuning, so not done blind.
-- [x] OTA hardening: hostname `robot` (`robot.local`) and optional password (`OTA_PASSWORD` in `secrets.h` + `upload_flags = --auth=...`). Off by default so the existing OTA flow is unchanged.
+- [x] OTA hardening: hostname `gadget` (`gadget.local`) and optional password (`OTA_PASSWORD` in `secrets.h` + `upload_flags = --auth=...`). Off by default so the existing OTA flow is unchanged.
 - [x] WebSocket auth, opt-in: define `WS_TOKEN` in `secrets.h`; clients must send `AUTH <token>` first, others are disconnected. [ ] The token travels in clear text over `ws://` (fine for a home LAN, not beyond it).
-- [x] Watchdog: loop watchdog enabled (`enableLoopWDT()`); a hung `loop()` resets the board. [ ] The measurement task is not watched, and the PID is not in its own watched task (see 1.2).
+- [x] Watchdog: loop watchdog enabled (`enableLoopWDT()`); a hung `loop()` resets the board. [ ] The measurement task is not watched. The control task is watched by `loop()` (restart if it stalls for 2s).
 - [x] WiFi: `setAutoReconnect(true)`, `setSleep(false)`, hostname.
 
 ### 3.2 Sensor pipeline
 
-- [x] ~~Range sensors concurrently~~ **Tried and rolled back; do not retry (see README).** Details of the last attempt: `DistanceManager::sweep` runs 5 batches of 2 opposite-facing sensors (`kSweepBatches`): start both (`startRange`), poll `isRangeComplete`, read both; a sweep takes ~225ms instead of ~390ms. A sensor that has not finished within `SWEEP_TIMEOUT_MS` (200) reports `OOR` for that sweep. **Ranging all 10 at once does not work on this hardware:** 4 of the sensors failed to start (`VL53L0X_ERROR_TIME_OUT`, each stalling `startRange` for ~1.3s) and the rest returned 8191, so the UI showed only the first 5-6 readings. Batches of 5 or 2 adjacent sensors failed the same way; only opposite-facing pairs are clean. [ ] The Core-0 task is kept (the poll loop still blocks for ~one budget); continuous mode could now run faster than the 200ms interval.
+- [x] ~~Range sensors concurrently~~ **Tried and rolled back; do not retry (see `SENSOR_FLOW.md`).** Details of the last attempt: `DistanceManager::sweep` runs 5 batches of 2 opposite-facing sensors (`kSweepBatches`): start both (`startRange`), poll `isRangeComplete`, read both; a sweep takes ~225ms instead of ~390ms. A sensor that has not finished within `SWEEP_TIMEOUT_MS` (200) reports `OOR` for that sweep. **Ranging all 10 at once does not work on this hardware:** 4 of the sensors failed to start (`VL53L0X_ERROR_TIME_OUT`, each stalling `startRange` for ~1.3s) and the rest returned 8191, so the UI showed only the first 5-6 readings. Batches of 5 or 2 adjacent sensors failed the same way; only opposite-facing pairs are clean. [ ] The Core-0 task is kept (the poll loop still blocks for ~one budget); continuous mode could now run faster than the 200ms interval.
 - [ ] I2C clock at 400kHz: `Wire.setClock(400000)` is in `initAddresses` but commented out (it did not fix the parallel-ranging problem and is not needed at ~225ms per sweep).
 - [x] Task notification instead of flag + polling; private buffer under a mutex. [ ] Not done: a sequence number / timestamp in the published sweep so consumers can tell fresh from stale.
 - [ ] Per-sensor health (consecutive failures, auto-recover) and optional median/EMA filtering.
@@ -111,6 +111,7 @@ All `[x]` items are implemented and verified on the robot.
 ### 3.5 Tooling
 
 - [ ] Add a `[env:native]` PlatformIO environment with Unity tests for pure logic. Blocked on separating the logic from Arduino `String`/hardware (command parsing and PID maths would need small interfaces); no host C++ compiler is installed on this machine either.
+- [x] Static analysis: `pio check` (cppcheck on `src/` and `lib/`, config in `platformio.ini`), clean at medium/high severity. [ ] Three low-severity style notes remain (C-style cast in `ConnectionManager.cpp`, mutex assigned in the constructor body, raw loop in `setDirection`); no clang-tidy yet.
 - [x] `secrets.h` + example + `.gitignore` entries (`.idea/`, `secrets.h`).
-- [ ] Optional `[env:ota]` in `platformio.ini` so switching between USB and OTA is a flag rather than commenting lines in/out.
-- [x] `-Wall` in `build_flags` (and the warnings it raised are fixed). [ ] `-Wextra` not enabled yet.
+- [x] `[env:ota]` in `platformio.ini` (`pio run -e ota -t upload`, `gadget.local`); `default_envs` keeps plain `pio run` on USB.
+- [x] `-Wall` in `build_flags` (and the warnings it raised are fixed). `-Wextra` is enabled too and the build is clean.

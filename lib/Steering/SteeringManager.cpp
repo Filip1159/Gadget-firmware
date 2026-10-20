@@ -3,6 +3,7 @@
 #define TURNING_FACTOR 0.7
 
 SteeringManager::SteeringManager() {
+    mutex = xSemaphoreCreateMutex();
     left = new PidController(PCNT_UNIT_0, LEFT_2_PIN, LEFT_1_PIN);
     right = new PidController(PCNT_UNIT_1, RIGHT_2_PIN, RIGHT_1_PIN);
 }
@@ -53,23 +54,63 @@ void SteeringManager::init() {
     pcnt_counter_resume(PCNT_UNIT_1);
 }
 
+namespace {
+// Scoped lock for the steering mutex.
+struct Lock {
+    SemaphoreHandle_t m;
+    explicit Lock(SemaphoreHandle_t m) : m(m) {
+        xSemaphoreTake(m, portMAX_DELAY);
+    }
+    ~Lock() {
+        xSemaphoreGive(m);
+    }
+};
+}  // namespace
+
 void SteeringManager::resetPids() {
+    Lock lock(mutex);
     left->reset();
     right->reset();
 }
 
+void SteeringManager::setSpeed(uint16_t newSpeed) {
+    Lock lock(mutex);
+    speed = newSpeed;
+}
+
+uint16_t SteeringManager::getSpeed() {
+    Lock lock(mutex);
+    return speed;
+}
+
 void SteeringManager::setPid(float P, float I, float D) {
+    Lock lock(mutex);
     left->setPid(P, I, D);
     right->setPid(P, I, D);
 }
 
+void SteeringManager::getPid(float& P, float& I, float& D) {
+    Lock lock(mutex);
+    P = left->getKp();
+    I = left->getKi();
+    D = left->getKd();
+}
+
+bool SteeringManager::isMoving() {
+    Lock lock(mutex);
+    return direction != STOP;
+}
+
 bool SteeringManager::setDirection(const String& name) {
+    Lock lock(mutex);
     for (const DriveDirectionName& entry : kDriveDirectionNames) {
         if (name == entry.name) {
             if (entry.direction != direction) {
-                resetPids();  // only on an actual direction change; repeats must not wipe the integral
+                left->reset();  // only on an actual direction change; repeats must not wipe the integral
+                right->reset();
             }
             direction = entry.direction;
+            lastCommandMillis = millis();
             return true;
         }
     }
@@ -77,11 +118,46 @@ bool SteeringManager::setDirection(const String& name) {
 }
 
 void SteeringManager::stop() {
+    Lock lock(mutex);
     direction = STOP;
-    loop();
+    tickLocked();
 }
 
 void SteeringManager::loop() {
+    Lock lock(mutex);
+    tickLocked();
+}
+
+void SteeringManager::startTask() {
+    lastTickMillis = millis();
+    xTaskCreatePinnedToCore(
+        controlTask,    // Task function
+        "ControlTask",  // Task name
+        4096,           // Stack size
+        this,           // Parameter passed to task
+        2,              // Priority: above loop() (1), so network I/O cannot delay a tick
+        NULL,           // Task handle (not needed)
+        1               // Core 1, away from the sensor task on Core 0
+    );
+}
+
+void SteeringManager::controlTask(void* parameter) {
+    SteeringManager* manager = static_cast<SteeringManager*>(parameter);
+    TickType_t lastWake = xTaskGetTickCount();
+    while (true) {
+        vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(STEERING_PERIOD_MS));
+        manager->loop();
+    }
+}
+
+void SteeringManager::tickLocked() {
+    // Command timeout failsafe: runs here so a stalled network loop cannot delay it.
+    if (direction != STOP && millis() - lastCommandMillis >= COMMAND_TIMEOUT_MS) {
+        Serial.println("Command timeout, stopping");
+        direction = STOP;
+    }
+    lastTickMillis = millis();
+
     switch (direction) {
         case FORWARD:
             left->setTargetSpeed(WHEEL_FORWARD, speed);

@@ -8,7 +8,7 @@
 #include "secrets.h"  // gitignored; copy secrets.h.example
 
 #define MAX_MESSAGE_LENGTH 64
-#define HOSTNAME "robot"
+#define HOSTNAME "gadget"
 
 class ConnectionManager {
    private:
@@ -18,7 +18,7 @@ class ConnectionManager {
     std::function<void()> disconnectCallback;
     std::function<void()> otaStartCallback;
     std::function<void(uint8_t)> clientReadyCallback;
-    WebSocketsServer* webSocket;
+    WebSocketsServer* webSocket = nullptr;
     // Without WS_TOKEN every connected client is trusted; with it, a client must send "AUTH <token>" first.
     bool authenticated[WEBSOCKETS_SERVER_CLIENT_MAX] = {};
 

@@ -53,7 +53,6 @@ void CommandHandler::handle(const String& message) {
             reject("unknown command");
             return;
         }
-        lastDirectionCommandMillis = millis();
     }
 }
 
@@ -63,11 +62,12 @@ void CommandHandler::onClientDisconnected() {
 }
 
 void CommandHandler::sendState(uint8_t clientNum) {
-    const PidController* pid = steering.getPid();
+    float P, I, D;
+    steering.getPid(P, I, D);
     char buffer[96];
     snprintf(
-        buffer, sizeof(buffer), "STATE SPEED=%u P=%.4f I=%.4f D=%.4f MEASURING=%d", steering.getSpeed(), pid->getKp(),
-        pid->getKi(), pid->getKd(), continuousMeasurement ? 1 : 0
+        buffer, sizeof(buffer), "STATE SPEED=%u P=%.4f I=%.4f D=%.4f MEASURING=%d", steering.getSpeed(), P, I, D,
+        continuousMeasurement ? 1 : 0
     );
     connection.sendTo(clientNum, buffer);
 }
@@ -87,11 +87,6 @@ void CommandHandler::broadcastSweep() {
 
 void CommandHandler::loop() {
     unsigned long now = millis();
-
-    if (steering.isMoving() && now - lastDirectionCommandMillis >= COMMAND_TIMEOUT_MS) {
-        Serial.println("Command timeout, stopping");
-        steering.stop();
-    }
 
     // Continuous measurement mode: request a new sweep every MEASUREMENT_INTERVAL_MS
     if (continuousMeasurement && now - lastMeasurementRequestMillis >= MEASUREMENT_INTERVAL_MS) {

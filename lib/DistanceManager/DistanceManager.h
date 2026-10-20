@@ -3,8 +3,6 @@
 #include <Arduino.h>
 #include <DistanceSensor.h>
 
-#include <map>
-
 #define FRONT_ADDRESS 0x30
 #define FRONT_LEFT_45_ADDRESS 0x31
 #define FRONT_LEFT_ADDRESS 0x32
@@ -27,6 +25,8 @@
 #define BACK_RIGHT_45_SHT A3
 #define BACK_RIGHT_SHT A2
 
+#define SENSOR_COUNT 10
+
 enum SensorDirection {
     FRONT,
     FRONT_LEFT_45,
@@ -42,8 +42,8 @@ enum SensorDirection {
 
 class DistanceManager {
    private:
-    std::map<SensorDirection, DistanceSensor*> sensors;
-    SensorDirection* sensorsOrder;
+    DistanceSensor* sensors[SENSOR_COUNT];  // indexed by SensorDirection
+    SensorDirection sensorsOrder[SENSOR_COUNT];
 
     // Multi-core support
     TaskHandle_t measurementTaskHandle;
@@ -52,7 +52,7 @@ class DistanceManager {
     bool measurementRequested;
     bool measurementInProgress;
     bool measurementReady;
-    uint16_t latestMeasurements[10];
+    uint16_t latestMeasurements[SENSOR_COUNT];
 
     static void measurementTask(void* parameter);
 
@@ -63,10 +63,6 @@ class DistanceManager {
 
     void startMeasurementTask();
 
-    uint16_t measure(SensorDirection direction);
-
-    void measureAll(uint16_t result[10]);
-
     void requestMeasurement();
 
     bool isMeasurementReady();
@@ -74,13 +70,9 @@ class DistanceManager {
     // True while a requested sweep is queued or running.
     bool isMeasurementBusy();
 
-    void getLatestMeasurements(uint16_t result[10]);
+    void getLatestMeasurements(uint16_t result[SENSOR_COUNT]);
 
     void clearMeasurementReady();
-
-    SensorDirection* getSensorsOrder() {
-        return sensorsOrder;
-    }
 
     String directionToString(SensorDirection direction);
 

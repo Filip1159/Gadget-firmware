@@ -5,7 +5,7 @@ PlatformIO firmware for a 2-wheeled robot built on an **Arduino Nano ESP32** (ES
 ## Build / upload
 
 - Build system: PlatformIO (`platformio.ini`), environment `arduino_nano_esp32`.
-- Framework: Arduino, platform `espressif32`.
+- Framework: Arduino, platform `espressif32` (not version-pinned yet). `build_flags` has `-Wall`; `-DDEBUG_PID` (commented out) enables per-tick PID output on serial.
 - Library deps: `adafruit/Adafruit_VL53L0X@1.2.4`, `links2004/WebSockets@2.7.3`.
 - Upload: currently via serial (`upload_port = COM14`, 115200 baud). OTA upload is wired up in firmware (`ArduinoOTA`) but `upload_protocol = espota` is commented out in `platformio.ini` — uncomment and set `upload_port` to the robot's IP to flash over WiFi instead of USB.
 - Serial monitor: 115200 baud, prints connection status, OTA progress, and PID debug (`P`/`I`/`D` values on `PID` command).
@@ -14,45 +14,50 @@ PlatformIO firmware for a 2-wheeled robot built on an **Arduino Nano ESP32** (ES
 
 Two FreeRTOS cores are used deliberately to avoid blocking the motor control loop:
 
-- **Core 1** (default Arduino `loop()`): WebSocket I/O (`ConnectionManager::loop()`), OTA handling, PID steering loop (`SteeringManager::loop()`, driven at a 100ms / 10Hz cadence), and polling for/broadcasting finished distance measurements.
-- **Core 0**: a dedicated FreeRTOS task (`DistanceManager::measurementTask`) that blockingly reads all 10 VL53L0X sensors (~330ms for all 10) whenever a measurement is requested. This exists because the VL53L0X `rangingTest()` I2C call is blocking and previously starved the 100ms PID loop, causing visible speed drops during measurement (see `STATUS.MD` for the full history of this bug and fix).
+- **Core 1** (default Arduino `loop()`): WebSocket I/O + OTA (`ConnectionManager::loop()`), `CommandHandler::loop()` (command timeout failsafe, continuous-measurement scheduling, sweep broadcast), and the PID steering loop (`SteeringManager::loop()`, 100ms cadence). The loop task is under the Arduino loop watchdog (`enableLoopWDT()`, 5s, resets the board; `ArduinoOTA` feeds it during uploads).
+- **Core 0**: a dedicated FreeRTOS task (`DistanceManager::measurementTask`) that blockingly reads the 10 VL53L0X sensors one after another (~390ms per sweep) whenever a measurement is requested. This exists because the VL53L0X `rangingTest()` I2C call is blocking and previously starved the 100ms PID loop, causing visible speed drops during measurement (see `STATUS.MD` for the full history of this bug and fix).
 
-Cross-core communication uses a shared `measurementMutex` guarding `measurementRequested`/`measurementReady`/`latestMeasurements[10]` — not a queue, just a flag-based single-slot handoff (see Known gotchas).
+Cross-core handoff: the Core-0 task sleeps on a FreeRTOS task notification, measures into a private buffer, and publishes it under `measurementMutex` (flags `measurementRequested`/`measurementInProgress`/`measurementReady` and `latestMeasurements[]` are all guarded by that mutex). A request made during a sweep triggers a fresh sweep afterwards. See Known gotchas.
 
 ### Modules (`lib/`)
 
-- **ConnectionManager** (`lib/ConnectionManager/`) — WiFi station connect (`initWiFi`), ArduinoOTA setup (`initOta`), and a `WebSocketsServer` on port 88 (`initWebsocket`). Incoming text frames are forwarded verbatim as a `String` to a single global callback (`updateSteering` in `main.cpp`). `send()` is a direct synchronous `broadcastTXT` to all connected clients — there is no outgoing queue or backpressure handling.
-  - WiFi SSID/password are hardcoded as plaintext constants in `ConnectionManager.h` — treat this file as sensitive, don't paste its contents elsewhere.
-- **DistanceManager** (`lib/DistanceManager/`) — owns 10 `DistanceSensor` (VL53L0X) instances, each with a unique I2C address (`0x30`-`0x39`) assigned at boot via XSHUT pins (`initAddresses`), since all sensors share the same default I2C address out of the box. Exposes a non-blocking request/poll API (`requestMeasurement`, `isMeasurementReady`, `getLatestMeasurements`, `clearMeasurementReady`) backed by the Core-0 task described above. Sensor order/direction mapping: `FRONT, FRONT_LEFT_45, FRONT_LEFT, FRONT_RIGHT_45, FRONT_RIGHT, BACK, BACK_LEFT_45, BACK_LEFT, BACK_RIGHT_45, BACK_RIGHT` (index 0-9, see `sensorsOrder` / `SensorDirection` enum). `directionToString()` converts these to the exact strings sent over the wire.
-- **Steering** (`lib/Steering/`) — `SteeringManager` maps a `DriveDirection` enum (`FORWARD`, `FORWARD_LEFT`, `FORWARD_RIGHT`, `LEFT`, `STOP`, `RIGHT`, `BACKWARD`, `BACKWARD_LEFT`, `BACKWARD_RIGHT`) + a target `speed` to independent per-wheel target speeds (turns scale the inner wheel by `TURNING_FACTOR = 0.7`), then runs a `PidController` per wheel (`Kp=0.15, Ki=0.05, Kd=0.0` defaults) closing the loop against quadrature encoder pulse counts read via the ESP-IDF `driver/pcnt` (pulse counter) peripheral. `STOP` resets both PIDs (clears integral windup) in addition to zeroing target speed.
+- **ConnectionManager** (`lib/ConnectionManager/`) - WiFi station connect with auto-reconnect and modem sleep off (`initWiFi`), ArduinoOTA with hostname `robot` (`robot.local`), optional `OTA_PASSWORD`, progress/error messages and a stop-motors hook (`initOta`), and a `WebSocketsServer` on port 88 (`initWebsocket`). Frames up to `MAX_MESSAGE_LENGTH` (64) bytes are passed to a `std::function` callback. If `WS_TOKEN` is defined, a client must send `AUTH <token>` first or it is disconnected; `send()` goes only to ready (authenticated) clients, `sendTo(num, ...)` to one. Callbacks: `setOnDisconnect`, `setOnOtaStart`, `setOnClientReady`.
+  - WiFi credentials (and optional `OTA_PASSWORD`, `WS_TOKEN`) live in `lib/ConnectionManager/secrets.h`, which is gitignored; copy `secrets.h.example` and fill it in. Never commit or paste its contents. (An old hotspot credential is still in git history, commit `14d8889`.)
+- **DistanceManager** (`lib/DistanceManager/`) - owns 10 `DistanceSensor` (VL53L0X) instances in an array indexed by `SensorDirection`, each with a unique I2C address (`0x30`-`0x39`) assigned at boot via XSHUT pins (`initAddresses`). A sensor that fails to boot is marked offline (held in reset) and reports `OUT_OF_RANGE_MM` (`0xFFFF`); boot continues. Exposes a non-blocking request/poll API (`requestMeasurement`, `isMeasurementReady`, `isMeasurementBusy`, `getLatestMeasurements`, `clearMeasurementReady`) backed by the Core-0 task. Sensor order is the enum order `FRONT, FRONT_LEFT_45, FRONT_LEFT, FRONT_RIGHT_45, FRONT_RIGHT, BACK, BACK_LEFT_45, BACK_LEFT, BACK_RIGHT_45, BACK_RIGHT`; `directionToString()` yields the exact wire names.
+- **Steering** (`lib/Steering/`) - `SteeringManager` maps a `DriveDirection` (`FORWARD`, `FORWARD_LEFT`, `FORWARD_RIGHT`, `LEFT`, `STOP`, `RIGHT`, `BACKWARD`, `BACKWARD_LEFT`, `BACKWARD_RIGHT`; names in `kDriveDirectionNames`, `DriveDirection.h`) + a target `speed` to per-wheel target speeds (turns scale the inner wheel by `TURNING_FACTOR = 0.7`), then runs a `PidController` per wheel (`Kp=0.15, Ki=0.05, Kd=0.0` defaults). Encoder pulses come from the ESP-IDF `driver/pcnt` peripheral; the PID uses real elapsed time, conditional-integration anti-windup, and clears the counter every tick. `setDirection()` returns false for unknown names and resets the PIDs only when the direction actually changes. `stop()` zeroes the motors immediately.
+- **Commands** (`lib/Commands/`) - `CommandHandler` parses frontend commands (strictly: `SPEED` digits only and clamped to `MAX_SPEED`; `PID` exactly 3 finite non-negative floats), dispatches to the managers, answers rejects with `ERR <reason>`, sends `STATE ...` to a client when it becomes ready, stops the robot and continuous measurement when a client disconnects, enforces the 1s command timeout (`COMMAND_TIMEOUT_MS`), and schedules/broadcasts measurement sweeps. `main.cpp` only wires the modules together.
 
 ## Communication schema (WebSocket, port 88, plain text frames)
 
 No JSON — every message is a plain space-delimited ASCII string. The server is the robot; the frontend is the client.
 
-### Frontend → Robot (commands), handled in `updateSteering()` (`src/main.cpp`)
+### Frontend -> Robot (commands), handled in `CommandHandler::handle()` (`lib/Commands/`)
 
 | Message | Effect |
 |---|---|
-| `SPEED <uint16>` | Sets `SteeringManager` target speed (applies to all subsequent direction commands) |
-| `PID <P> <I> <D>` | Sets PID gains (floats) for both wheel controllers, resets integral term |
+| `AUTH <token>` | Only if the firmware defines `WS_TOKEN`: must be the first frame. Wrong token = disconnect. Handled in `ConnectionManager`. |
+| `SPEED <0..2000>` | Sets `SteeringManager` target speed (digits only, clamped to `MAX_SPEED`; applies to all subsequent direction commands) |
+| `PID <P> <I> <D>` | Sets PID gains (finite floats >= 0) for both wheel controllers, resets integral term |
 | `MEASURE_START` | Enables continuous measurement mode (robot auto-requests a new 10-sensor sweep every 200ms) |
 | `MEASURE_STOP` | Disables continuous measurement mode |
 | `MEASURE` | Requests exactly one measurement sweep (non-blocking; result arrives async via `MEASURE ...` broadcasts) |
-| Any other string | Treated as a `DriveDirection` name (`FORWARD`, `FORWARD_LEFT`, `FORWARD_RIGHT`, `LEFT`, `STOP`, `RIGHT`, `BACKWARD`, `BACKWARD_LEFT`, `BACKWARD_RIGHT`) — unrecognized values throw (`std::map::at`), crashing `updateSteering`. Also resets PIDs. |
+| A `DriveDirection` name | `FORWARD`, `FORWARD_LEFT`, `FORWARD_RIGHT`, `LEFT`, `STOP`, `RIGHT`, `BACKWARD`, `BACKWARD_LEFT`, `BACKWARD_RIGHT`. The robot stops by itself if the active direction is not refreshed within 1s, so the frontend repeats it every 500ms while held. |
+| Anything else | Rejected: logged and answered with `ERR unknown command` (no crash). |
 
-### Robot → Frontend (broadcast, unsolicited)
+### Robot -> Frontend
 
-- `MEASURE <DIRECTION>=<mm|OOR> ...` � a single frame per completed sweep, e.g. `MEASURE FRONT=412 FRONT_LEFT_45=OOR ...`, containing all 10 sensors in `sensorsOrder`. `OOR` means out of range / no obstacle (also reported for sensors that are offline). `DIRECTION` is one of the 10 `SensorDirection` strings above (see `directionToString`). The frontend must treat the frame as one atomic sweep.
-- Nothing is sent for `SPEED`/`PID`/direction commands — they are fire-and-forget from the frontend's perspective.
+- `MEASURE <DIRECTION>=<mm|OOR> ...` — a single frame per completed sweep, e.g. `MEASURE FRONT=412 FRONT_LEFT_45=OOR ...`, containing all 10 sensors in `sensorsOrder`. `OOR` means out of range / no obstacle (also reported for sensors that are offline). `DIRECTION` is one of the 10 `SensorDirection` strings above (see `directionToString`). The frontend must treat the frame as one atomic sweep.
+- `STATE SPEED=<n> P=<f> I=<f> D=<f> MEASURING=<0|1>` - sent to a single client when it becomes ready (connected, and authenticated if `WS_TOKEN` is set) so the UI can initialise from the robot.
+- `ERR <reason>` - a command was rejected (`invalid SPEED`, `invalid PID`, `unknown command`).
+- Nothing is sent for accepted `SPEED`/`PID`/direction commands (fire-and-forget).
 
 ## Known gotchas / fragile areas
 
-- **`measurementReady` must be cleared after each consumption.** It's a single-slot flag, not a queue. `requestMeasurement()` sets it `false`; the Core-0 task sets it `true` when a sweep finishes; the consumer (`loop()` in `main.cpp`) must call `clearMeasurementReady()` after broadcasting, or it stays `true` forever — the 200ms continuous-mode re-trigger (`if (!isMeasurementReady()) requestMeasurement()`) then never fires again, and the unthrottled send-when-ready check re-broadcasts the same stale values every single loop iteration. (This exact bug was hit and fixed — see `STATUS.MD` and git history.)
-- **Unrecognized `DriveDirection` strings crash `updateSteering`** via `std::map::at` throwing on a missing key — there's no validation before `directionStrings.at(direction)` in `SteeringManager::setDirection`.
-- **No OTA auth/encryption configured** (`ArduinoOTA.begin()` with no password) — fine on a trusted home network, not safe to expose beyond that.
-- **WebSocket has no auth** — any client on the network can connect to port 88 and drive the robot or spam measurement commands.
-- Sensor measurement sweep takes ~330ms for all 10 sensors; continuous mode requests a new sweep every 200ms, so the achievable update rate is closer to ~2-3Hz, not 5Hz.
+- **`measurementReady` must be cleared after each consumption** (`CommandHandler::broadcastSweep` does it). It is a single-slot flag, not a queue. `requestMeasurement()` sets it `false`; the Core-0 task sets it `true` when a sweep finishes. If it is not cleared, continuous mode never re-requests and the same sweep is re-broadcast on every loop iteration. Continuous mode also checks `isMeasurementBusy()` so it does not stack requests on a running sweep.
+- **Unknown direction strings are rejected, not fatal** (`SteeringManager::setDirection` returns false). Do not reintroduce `std::map::at` (Arduino-ESP32 builds without exceptions, so a miss would abort and reboot the robot).
+- **OTA and WebSocket auth are opt-in.** Without `OTA_PASSWORD` / `WS_TOKEN` in `secrets.h`, anyone on the network can flash the robot or drive it. Fine on a trusted home network only. The token is sent in clear text over `ws://`.
+- **Failsafes live in firmware, not just the UI:** STOP on client disconnect, on OTA start, after 1s without a direction command, and a loop-watchdog reset. Re-verify them after changes to `CommandHandler`/`ConnectionManager`.
+- **Do not try to speed up the sensor sweep by ranging sensors concurrently (see README).** It was tried twice and is unreliable on this hardware. A sweep takes ~390ms, so continuous mode (requested every 200ms, `MEASUREMENT_INTERVAL_MS`) yields about 2-3 sweeps per second. Several side sensors (FRONT_LEFT, BACK_LEFT) are noisy at the edge of their range even when ranged one by one.
 
 ## Companion frontend
 

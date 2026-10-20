@@ -31,6 +31,15 @@ class PidController {
         this->Ki = I;
         this->Kd = D;
     }
+    float getKp() const {
+        return Kp;
+    }
+    float getKi() const {
+        return Ki;
+    }
+    float getKd() const {
+        return Kd;
+    }
     void setTargetSpeed(WheelDirection direction, uint16_t targetSpeed) {
         this->direction = direction;
         this->targetSpeed = targetSpeed;

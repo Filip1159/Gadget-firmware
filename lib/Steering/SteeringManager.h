@@ -22,19 +22,6 @@ class SteeringManager {
     PidController* right;
     uint16_t speed = 1000;
     DriveDirection direction = STOP;
-    // clang-format off
-    std::map<String, DriveDirection> directionStrings = { 
-        { "FORWARD", FORWARD },
-        { "FORWARD_LEFT", FORWARD_LEFT },
-        { "FORWARD_RIGHT", FORWARD_RIGHT },
-        { "LEFT", LEFT },
-        { "STOP", STOP },
-        { "RIGHT", RIGHT },
-        { "BACKWARD", BACKWARD },
-        { "BACKWARD_LEFT", BACKWARD_LEFT },
-        { "BACKWARD_RIGHT", BACKWARD_RIGHT }
-    };
-    // clang-format on
 
    public:
     SteeringManager();
@@ -44,22 +31,19 @@ class SteeringManager {
     void setSpeed(uint16_t speed) {
         this->speed = speed;
     }
-    // Returns false (and leaves the current direction untouched) for unknown names.
-    bool setDirection(const String& direction) {
-        auto it = directionStrings.find(direction);
-        if (it == directionStrings.end()) {
-            return false;
-        }
-        if (it->second != this->direction) {
-            resetPids();  // only on an actual direction change; repeats must not wipe the integral
-        }
-        this->direction = it->second;
-        return true;
+    uint16_t getSpeed() const {
+        return speed;
     }
+    // Returns false (and leaves the current direction untouched) for unknown names.
+    bool setDirection(const String& name);
     bool isMoving() const {
         return direction != STOP;
     }
     // Immediately stops both motors (does not wait for the next steering tick).
     void stop();
     void setPid(float P, float I, float D);
+    // Both wheels always share the same gains.
+    const PidController* getPid() const {
+        return left;
+    }
 };

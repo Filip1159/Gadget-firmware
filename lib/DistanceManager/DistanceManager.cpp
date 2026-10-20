@@ -1,24 +1,27 @@
 #include <DistanceManager.h>
 #include <DistanceSensor.h>
 
-#include <map>
+// Wire names, indexed by SensorDirection (must match the frontend's protocol.ts).
+static const char* const kSensorNames[SENSOR_COUNT] = {
+    "FRONT", "FRONT_LEFT_45", "FRONT_LEFT", "FRONT_RIGHT_45", "FRONT_RIGHT",
+    "BACK",  "BACK_LEFT_45",  "BACK_LEFT",  "BACK_RIGHT_45",  "BACK_RIGHT",
+};
 
-DistanceManager::DistanceManager() {
-    sensorsOrder = new SensorDirection[10]{ FRONT, FRONT_LEFT_45, FRONT_LEFT, FRONT_RIGHT_45, FRONT_RIGHT,
-                                            BACK,  BACK_LEFT_45,  BACK_LEFT,  BACK_RIGHT_45,  BACK_RIGHT };
+DistanceManager::DistanceManager()
+    : sensorsOrder{ FRONT, FRONT_LEFT_45, FRONT_LEFT, FRONT_RIGHT_45, FRONT_RIGHT,
+                    BACK,  BACK_LEFT_45,  BACK_LEFT,  BACK_RIGHT_45,  BACK_RIGHT } {
     // clang-format off
-    sensors = {
-        { FRONT, new DistanceSensor(FRONT_ADDRESS, FRONT_SHT) },
-        { FRONT_LEFT_45, new DistanceSensor(FRONT_LEFT_45_ADDRESS, FRONT_LEFT_45_SHT) },
-        { FRONT_LEFT, new DistanceSensor(FRONT_LEFT_ADDRESS, FRONT_LEFT_SHT) },
-        { FRONT_RIGHT_45, new DistanceSensor(FRONT_RIGHT_45_ADDRESS, FRONT_RIGHT_45_SHT) },
-        { FRONT_RIGHT, new DistanceSensor(FRONT_RIGHT_ADDRESS, FRONT_RIGHT_SHT) },
-        { BACK, new DistanceSensor(BACK_ADDRESS, BACK_SHT) },
-        { BACK_LEFT_45, new DistanceSensor(BACK_LEFT_45_ADDRESS, BACK_LEFT_45_SHT) },
-        { BACK_LEFT, new DistanceSensor(BACK_LEFT_ADDRESS, BACK_LEFT_SHT) },
-        { BACK_RIGHT_45, new DistanceSensor(BACK_RIGHT_45_ADDRESS, BACK_RIGHT_45_SHT) },
-        { BACK_RIGHT, new DistanceSensor(BACK_RIGHT_ADDRESS, BACK_RIGHT_SHT) }
-    };
+    // Indexed by SensorDirection
+    sensors[FRONT] = new DistanceSensor(FRONT_ADDRESS, FRONT_SHT);
+    sensors[FRONT_LEFT_45] = new DistanceSensor(FRONT_LEFT_45_ADDRESS, FRONT_LEFT_45_SHT);
+    sensors[FRONT_LEFT] = new DistanceSensor(FRONT_LEFT_ADDRESS, FRONT_LEFT_SHT);
+    sensors[FRONT_RIGHT_45] = new DistanceSensor(FRONT_RIGHT_45_ADDRESS, FRONT_RIGHT_45_SHT);
+    sensors[FRONT_RIGHT] = new DistanceSensor(FRONT_RIGHT_ADDRESS, FRONT_RIGHT_SHT);
+    sensors[BACK] = new DistanceSensor(BACK_ADDRESS, BACK_SHT);
+    sensors[BACK_LEFT_45] = new DistanceSensor(BACK_LEFT_45_ADDRESS, BACK_LEFT_45_SHT);
+    sensors[BACK_LEFT] = new DistanceSensor(BACK_LEFT_ADDRESS, BACK_LEFT_SHT);
+    sensors[BACK_RIGHT_45] = new DistanceSensor(BACK_RIGHT_45_ADDRESS, BACK_RIGHT_45_SHT);
+    sensors[BACK_RIGHT] = new DistanceSensor(BACK_RIGHT_ADDRESS, BACK_RIGHT_SHT);
     // clang-format on
 
     // Initialize multi-core support
@@ -29,74 +32,29 @@ DistanceManager::DistanceManager() {
     measurementTaskHandle = NULL;
 
     // Initialize measurements array
-    for (uint8_t i = 0; i < 10; i++) {
+    for (uint8_t i = 0; i < SENSOR_COUNT; i++) {
         latestMeasurements[i] = 0;
     }
 }
 
-void initPinsAsOutputs() {
-    pinMode(FRONT_SHT, OUTPUT);
-    pinMode(FRONT_LEFT_45_SHT, OUTPUT);
-    pinMode(FRONT_LEFT_SHT, OUTPUT);
-    pinMode(FRONT_RIGHT_45_SHT, OUTPUT);
-    pinMode(FRONT_RIGHT_SHT, OUTPUT);
-    pinMode(BACK_SHT, OUTPUT);
-    pinMode(BACK_LEFT_45_SHT, OUTPUT);
-    pinMode(BACK_LEFT_SHT, OUTPUT);
-    pinMode(BACK_RIGHT_45_SHT, OUTPUT);
-    pinMode(BACK_RIGHT_SHT, OUTPUT);
-}
-
 void DistanceManager::initAddresses() {
-    for (auto sensor : sensors) {
-        pinMode(sensor.second->getShtPin(), OUTPUT);
+    for (DistanceSensor* sensor : sensors) {
+        pinMode(sensor->getShtPin(), OUTPUT);
     }
 
-    for (auto sensor : sensors) {
-        digitalWrite(sensor.second->getShtPin(), LOW);  // LOW = reset
+    for (DistanceSensor* sensor : sensors) {
+        digitalWrite(sensor->getShtPin(), LOW);  // LOW = reset
     }
 
     delay(10);
 
-    for (auto sensor : sensors) {
-        sensor.second->setAddress();  // a failed sensor is marked offline, boot continues
-    }
-}
-
-uint16_t DistanceManager::measure(SensorDirection direction) {
-    return sensors.at(direction)->measure();
-}
-
-void DistanceManager::measureAll(uint16_t result[10]) {
-    for (uint8_t i = 0; i < 10; i++) {
-        result[i] = sensors.at(sensorsOrder[i])->measure();
+    for (DistanceSensor* sensor : sensors) {
+        sensor->setAddress();  // a failed sensor is marked offline, boot continues
     }
 }
 
 String DistanceManager::directionToString(SensorDirection direction) {
-    switch (direction) {
-        case FRONT:
-            return "FRONT";
-        case FRONT_LEFT_45:
-            return "FRONT_LEFT_45";
-        case FRONT_LEFT:
-            return "FRONT_LEFT";
-        case FRONT_RIGHT_45:
-            return "FRONT_RIGHT_45";
-        case FRONT_RIGHT:
-            return "FRONT_RIGHT";
-        case BACK:
-            return "BACK";
-        case BACK_LEFT_45:
-            return "BACK_LEFT_45";
-        case BACK_LEFT:
-            return "BACK_LEFT";
-        case BACK_RIGHT_45:
-            return "BACK_RIGHT_45";
-        case BACK_RIGHT:
-            return "BACK_RIGHT";
-    }
-    return "";
+    return direction < SENSOR_COUNT ? String(kSensorNames[direction]) : String();
 }
 
 String DistanceManager::directionToString(uint8_t sensorIndex) {
@@ -125,13 +83,13 @@ void DistanceManager::measurementTask(void* parameter) {
             }
 
             // Measure into a private buffer so consumers never see a half-written sweep.
-            uint16_t local[10];
-            for (uint8_t i = 0; i < 10; i++) {
-                local[i] = manager->sensors.at(manager->sensorsOrder[i])->measure();
+            uint16_t local[SENSOR_COUNT];
+            for (uint8_t i = 0; i < SENSOR_COUNT; i++) {
+                local[i] = manager->sensors[manager->sensorsOrder[i]]->measure();
             }
 
             xSemaphoreTake(manager->measurementMutex, portMAX_DELAY);
-            for (uint8_t i = 0; i < 10; i++) {
+            for (uint8_t i = 0; i < SENSOR_COUNT; i++) {
                 manager->latestMeasurements[i] = local[i];
             }
             manager->measurementReady = true;
@@ -183,9 +141,9 @@ bool DistanceManager::isMeasurementReady() {
     return ready;
 }
 
-void DistanceManager::getLatestMeasurements(uint16_t result[10]) {
+void DistanceManager::getLatestMeasurements(uint16_t result[SENSOR_COUNT]) {
     xSemaphoreTake(measurementMutex, portMAX_DELAY);
-    for (uint8_t i = 0; i < 10; i++) {
+    for (uint8_t i = 0; i < SENSOR_COUNT; i++) {
         result[i] = latestMeasurements[i];
     }
     xSemaphoreGive(measurementMutex);

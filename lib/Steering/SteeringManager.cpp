@@ -63,6 +63,19 @@ void SteeringManager::setPid(float P, float I, float D) {
     right->setPid(P, I, D);
 }
 
+bool SteeringManager::setDirection(const String& name) {
+    for (const DriveDirectionName& entry : kDriveDirectionNames) {
+        if (name == entry.name) {
+            if (entry.direction != direction) {
+                resetPids();  // only on an actual direction change; repeats must not wipe the integral
+            }
+            direction = entry.direction;
+            return true;
+        }
+    }
+    return false;
+}
+
 void SteeringManager::stop() {
     direction = STOP;
     loop();

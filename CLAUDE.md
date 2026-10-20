@@ -43,7 +43,7 @@ No JSON — every message is a plain space-delimited ASCII string. The server is
 
 ### Robot → Frontend (broadcast, unsolicited)
 
-- `MEASURE <DIRECTION> <uint16 distance_mm>` — one frame per sensor per completed sweep (10 frames per sweep), sent back-to-back from the main loop whenever a sweep result is ready. `DIRECTION` is one of the 10 `SensorDirection` strings above (see `directionToString`). There is currently no single combined/batched message — the frontend must assemble 10 frames into its own per-sensor map.
+- `MEASURE <DIRECTION>=<mm|OOR> ...` � a single frame per completed sweep, e.g. `MEASURE FRONT=412 FRONT_LEFT_45=OOR ...`, containing all 10 sensors in `sensorsOrder`. `OOR` means out of range / no obstacle (also reported for sensors that are offline). `DIRECTION` is one of the 10 `SensorDirection` strings above (see `directionToString`). The frontend must treat the frame as one atomic sweep.
 - Nothing is sent for `SPEED`/`PID`/direction commands — they are fire-and-forget from the frontend's perspective.
 
 ## Known gotchas / fragile areas

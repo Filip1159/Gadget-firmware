@@ -48,8 +48,10 @@ class DistanceManager {
     // Multi-core support
     TaskHandle_t measurementTaskHandle;
     SemaphoreHandle_t measurementMutex;
-    volatile bool measurementRequested;
-    volatile bool measurementReady;
+    // All three guarded by measurementMutex
+    bool measurementRequested;
+    bool measurementInProgress;
+    bool measurementReady;
     uint16_t latestMeasurements[10];
 
     static void measurementTask(void* parameter);
@@ -68,6 +70,9 @@ class DistanceManager {
     void requestMeasurement();
 
     bool isMeasurementReady();
+
+    // True while a requested sweep is queued or running.
+    bool isMeasurementBusy();
 
     void getLatestMeasurements(uint16_t result[10]);
 

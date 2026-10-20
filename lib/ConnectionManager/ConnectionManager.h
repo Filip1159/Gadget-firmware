@@ -7,6 +7,8 @@
 
 #include "secrets.h"  // gitignored; copy secrets.h.example
 
+#define MAX_MESSAGE_LENGTH 64
+
 class ConnectionManager {
    private:
     const char* ssid = WIFI_SSID;

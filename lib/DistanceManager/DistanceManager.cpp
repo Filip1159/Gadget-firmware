@@ -24,6 +24,7 @@ DistanceManager::DistanceManager() {
     // Initialize multi-core support
     measurementMutex = xSemaphoreCreateMutex();
     measurementRequested = false;
+    measurementInProgress = false;
     measurementReady = false;
     measurementTaskHandle = NULL;
 
@@ -58,7 +59,7 @@ void DistanceManager::initAddresses() {
     delay(10);
 
     for (auto sensor : sensors) {
-        sensor.second->setAddress();
+        sensor.second->setAddress();  // a failed sensor is marked offline, boot continues
     }
 }
 
@@ -95,6 +96,7 @@ String DistanceManager::directionToString(SensorDirection direction) {
         case BACK_RIGHT:
             return "BACK_RIGHT";
     }
+    return "";
 }
 
 String DistanceManager::directionToString(uint8_t sensorIndex) {
@@ -104,24 +106,44 @@ String DistanceManager::directionToString(uint8_t sensorIndex) {
 
 void DistanceManager::measurementTask(void* parameter) {
     DistanceManager* manager = static_cast<DistanceManager*>(parameter);
+    bool stackLogged = false;
 
     while (true) {
-        // Wait for measurement request
-        if (manager->measurementRequested) {
-            // Perform measurements
-            for (uint8_t i = 0; i < 10; i++) {
-                manager->latestMeasurements[i] = manager->sensors.at(manager->sensorsOrder[i])->measure();
+        // Sleep until requestMeasurement() notifies us (no polling).
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        // Keep sweeping while requests keep arriving, so every request is answered by a sweep
+        // that started after it. Requests made during a sweep are coalesced into one new sweep.
+        while (true) {
+            xSemaphoreTake(manager->measurementMutex, portMAX_DELAY);
+            bool pending = manager->measurementRequested;
+            manager->measurementRequested = false;
+            manager->measurementInProgress = pending;
+            xSemaphoreGive(manager->measurementMutex);
+            if (!pending) {
+                break;
             }
 
-            // Mark as ready and clear request
-            xSemaphoreTake(manager->measurementMutex, portMAX_DELAY);
-            manager->measurementReady = true;
-            manager->measurementRequested = false;
-            xSemaphoreGive(manager->measurementMutex);
-        }
+            // Measure into a private buffer so consumers never see a half-written sweep.
+            uint16_t local[10];
+            for (uint8_t i = 0; i < 10; i++) {
+                local[i] = manager->sensors.at(manager->sensorsOrder[i])->measure();
+            }
 
-        // Small delay to prevent busy-waiting
-        vTaskDelay(pdMS_TO_TICKS(10));
+            xSemaphoreTake(manager->measurementMutex, portMAX_DELAY);
+            for (uint8_t i = 0; i < 10; i++) {
+                manager->latestMeasurements[i] = local[i];
+            }
+            manager->measurementReady = true;
+            manager->measurementInProgress = false;
+            xSemaphoreGive(manager->measurementMutex);
+
+            if (!stackLogged) {
+                stackLogged = true;
+                Serial.printf("MeasurementTask stack high-water mark: %u bytes free\n",
+                              (unsigned)uxTaskGetStackHighWaterMark(NULL));
+            }
+        }
     }
 }
 
@@ -143,6 +165,14 @@ void DistanceManager::requestMeasurement() {
     measurementRequested = true;
     measurementReady = false;
     xSemaphoreGive(measurementMutex);
+    xTaskNotifyGive(measurementTaskHandle);
+}
+
+bool DistanceManager::isMeasurementBusy() {
+    xSemaphoreTake(measurementMutex, portMAX_DELAY);
+    bool busy = measurementRequested || measurementInProgress;
+    xSemaphoreGive(measurementMutex);
+    return busy;
 }
 
 bool DistanceManager::isMeasurementReady() {

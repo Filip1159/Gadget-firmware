@@ -17,6 +17,49 @@ Note: no `STATUS.MD` existed in this repo before this file (the old one that `CL
 
 Still open in 1.1: nothing. Remaining items below are unchanged.
 
+
+## Resolved, round 2 (build verified, not flashed)
+
+- 1.2 anti-windup: conditional integration on the clamped output (the `== 255` comparison is gone).
+- 1.2 stale counts: PCNT counter is read and cleared every tick, also while stopped; PID state resets when stopped.
+- 1.2 dt: real elapsed time from `micros()` (clamped to 20-500ms, falls back to 100ms) instead of assuming 100ms.
+- 1.2 `PidController` defaults: `direction = WHEEL_FORWARD`, `targetSpeed = 0`.
+- 1.3 `printf` format fixed (`%#x`); a sensor that fails to boot is marked offline and held in reset instead of `while(1)`, so the robot still boots and OTA works. Offline sensors report the out-of-range value.
+- 1.3 `measure()`: struct zero-initialised, `rangingTest` return value checked, `OUT_OF_RANGE_MM` constant.
+
+Not done (still open): PCNT read+clear atomicity, request/ready handoff races, out-of-range wire sentinel (cross-repo), task stack check.
+
+
+## Resolved, round 3 (build verified, not flashed)
+
+- 1.4 `PID` parsing: `sscanf` with strict validation (exactly 3 finite, non-negative floats); bad input is rejected instead of silently zeroing gains. Command prefixes now include the space (`PID `, `SPEED `), so `PIDX`/`SPEEDY` no longer match.
+- 1.4 continuous measurement is switched off when a client disconnects (any client; fine for the single-client use case).
+- 1.4 text frames over `MAX_MESSAGE_LENGTH` (64) are ignored.
+- 1.4 PID debug output (String concatenation + serial print per wheel per tick) is behind `-DDEBUG_PID`; the flag is a commented line in `platformio.ini`.
+
+Not done: sending 10 blocking `broadcastTXT` per sweep (needs batching, cross-repo).
+
+
+
+## Resolved, round 4 (build verified, not flashed) [cross-repo, deploy both together]
+
+- Protocol 3.4 / 1.3 / 1.4: one batched frame per sweep, `MEASURE FRONT=412 FRONT_LEFT_45=OOR ...`, replacing 10 separate `MEASURE <DIR> <mm>` frames (10 blocking `broadcastTXT` calls become 1, and a sweep is atomic).
+- Out-of-range / offline sensors now use `OUT_OF_RANGE_MM = 0xFFFF` internally and `OOR` on the wire, so they are no longer confused with a real 1000mm reading.
+- `CLAUDE.md` wire-format section updated. NOTE: the old frontend cannot parse the new frame; flash the firmware and deploy the frontend together.
+
+Not done: real readings above 1000mm are now passed through as-is (previously only status-4 was clamped); other `RangeStatus` failure codes are still treated as valid readings.
+
+
+
+## Resolved, round 5 (build verified, not flashed)
+
+- 1.3 measurement handoff rewritten: the Core-0 task sleeps on `ulTaskNotifyTake` (no 10ms polling), measures into a private buffer and publishes under the mutex (no half-written sweeps), flags are mutex-guarded instead of `volatile`, and a request made mid-sweep triggers a fresh sweep instead of being swallowed. Continuous mode no longer re-requests while a sweep is queued/running (`isMeasurementBusy()`).
+- 1.3 stack high-water mark of the measurement task is printed once after the first sweep (check the serial monitor and shrink/grow `4096` accordingly).
+- `directionToString` has a return after the switch (`-Wreturn-type`).
+
+Still the biggest open item: ranging all 10 sensors in parallel (`startRange`/`isRangeComplete`/`readRange`) to cut a sweep from ~330ms to ~40ms. Deliberately not done blind; needs hardware testing.
+
+
 ---
 
 ## 1. Bugs

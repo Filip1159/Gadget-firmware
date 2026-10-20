@@ -53,6 +53,10 @@ void ConnectionManager::initWebsocket(void (*callback)(String message)) {
                 Serial.println("WebSocket connected");
                 break;
             case WStype_TEXT:
+                if (length > MAX_MESSAGE_LENGTH) {
+                    Serial.printf("Ignoring oversized message (%u bytes)\n", (unsigned)length);
+                    break;
+                }
                 Serial.print("Received message from server: ");
                 Serial.println((char*)payload);
                 websocketCallback(String((char*)payload));

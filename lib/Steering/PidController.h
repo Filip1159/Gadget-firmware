@@ -17,8 +17,9 @@ class PidController {
 
     float integral = 0;
     float previousError = 0;
-    WheelDirection direction;
-    int16_t targetSpeed = 1000;
+    WheelDirection direction = WHEEL_FORWARD;
+    int16_t targetSpeed = 0;
+    unsigned long lastLoopMicros = 0;
 
    public:
     PidController(pcnt_unit_t pcntUnit, uint8_t motorPin1, uint8_t motorPin2);

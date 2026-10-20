@@ -42,17 +42,16 @@ void updateSteering(String message) {
             return;
         }
         steeringManager.setSpeed(constrain(speed, 0L, (long)MAX_SPEED));
-    } else if (message.startsWith("PID")) {
-        message = message.substring(4);
-        String P = message.substring(0, message.indexOf(" "));
-        message = message.substring(P.length() + 1);
-        String I = message.substring(0, message.indexOf(" "));
-        message = message.substring(I.length() + 1);
-        String D = message.substring(0, message.indexOf(" "));
-        Serial.println(P);
-        Serial.println(I);
-        Serial.println(D);
-        steeringManager.setPid(P.toFloat(), I.toFloat(), D.toFloat());
+    } else if (message.startsWith("PID ")) {
+        float P, I, D;
+        char extra;
+        if (sscanf(message.c_str() + 4, "%f %f %f %c", &P, &I, &D, &extra) != 3 || !isfinite(P) || !isfinite(I) ||
+            !isfinite(D) || P < 0 || I < 0 || D < 0) {
+            Serial.println("Rejected invalid PID: " + message);
+            return;
+        }
+        Serial.printf("PID set: P=%f I=%f D=%f\n", P, I, D);
+        steeringManager.setPid(P, I, D);
     } else if (message == "MEASURE_START") {
         // Start continuous measurement mode
         continuousMeasurement = true;
@@ -81,7 +80,10 @@ void setup() {
     pinMode(LED_GREEN, OUTPUT);
 
     connectionManager.initWiFi();
-    connectionManager.setOnDisconnect([]() { steeringManager.stop(); });
+    connectionManager.setOnDisconnect([]() {
+        steeringManager.stop();
+        continuousMeasurement = false;  // don't keep sweeping/broadcasting to nobody
+    });
     connectionManager.setOnOtaStart([]() { steeringManager.stop(); });
     connectionManager.initOta();
     connectionManager.initWebsocket(updateSteering);
@@ -97,7 +99,7 @@ void loop() {
     // Continuous measurement mode - request new measurements every 200ms
     if (continuousMeasurement && currentMillis - previousMeasurementMillis >= 200) {
         previousMeasurementMillis = currentMillis;
-        if (!distanceManager.isMeasurementReady()) {
+        if (!distanceManager.isMeasurementReady() && !distanceManager.isMeasurementBusy()) {
             distanceManager.requestMeasurement();
         }
     }
@@ -106,9 +108,13 @@ void loop() {
     if (distanceManager.isMeasurementReady()) {
         uint16_t result[10];
         distanceManager.getLatestMeasurements(result);
+        // One frame per sweep: "MEASURE FRONT=412 FRONT_LEFT_45=OOR ..."
+        String frame = "MEASURE";
         for (uint8_t i = 0; i < 10; i++) {
-            connectionManager.send("MEASURE " + distanceManager.directionToString(i) + " " + result[i]);
+            frame += " " + distanceManager.directionToString(i) + "=";
+            frame += (result[i] == OUT_OF_RANGE_MM) ? String("OOR") : String(result[i]);
         }
+        connectionManager.send(frame);
         distanceManager.clearMeasurementReady();
     }
 

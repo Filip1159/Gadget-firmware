@@ -44,8 +44,22 @@ class SteeringManager {
     void setSpeed(uint16_t speed) {
         this->speed = speed;
     }
-    void setDirection(String direction) {
-        this->direction = directionStrings.at(direction);
+    // Returns false (and leaves the current direction untouched) for unknown names.
+    bool setDirection(const String& direction) {
+        auto it = directionStrings.find(direction);
+        if (it == directionStrings.end()) {
+            return false;
+        }
+        if (it->second != this->direction) {
+            resetPids();  // only on an actual direction change; repeats must not wipe the integral
+        }
+        this->direction = it->second;
+        return true;
     }
+    bool isMoving() const {
+        return direction != STOP;
+    }
+    // Immediately stops both motors (does not wait for the next steering tick).
+    void stop();
     void setPid(float P, float I, float D);
 };

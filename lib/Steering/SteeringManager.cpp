@@ -63,6 +63,11 @@ void SteeringManager::setPid(float P, float I, float D) {
     right->setPid(P, I, D);
 }
 
+void SteeringManager::stop() {
+    direction = STOP;
+    loop();
+}
+
 void SteeringManager::loop() {
     switch (direction) {
         case FORWARD:

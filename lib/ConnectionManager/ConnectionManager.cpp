@@ -2,7 +2,10 @@
 
 void ConnectionManager::initOta() {
     ArduinoOTA
-        .onStart([]() {
+        .onStart([this]() {
+            if (otaStartCallback) {
+                otaStartCallback();
+            }
             String type;
             if (ArduinoOTA.getCommand() == U_FLASH) {
                 type = "sketch";
@@ -42,6 +45,9 @@ void ConnectionManager::initWebsocket(void (*callback)(String message)) {
         switch (type) {
             case WStype_DISCONNECTED:
                 Serial.println("WebSocket disconnected");
+                if (disconnectCallback) {
+                    disconnectCallback();
+                }
                 break;
             case WStype_CONNECTED:
                 Serial.println("WebSocket connected");

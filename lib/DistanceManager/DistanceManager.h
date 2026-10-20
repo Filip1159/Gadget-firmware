@@ -45,14 +45,33 @@ class DistanceManager {
     std::map<SensorDirection, DistanceSensor*> sensors;
     SensorDirection* sensorsOrder;
 
+    // Multi-core support
+    TaskHandle_t measurementTaskHandle;
+    SemaphoreHandle_t measurementMutex;
+    volatile bool measurementRequested;
+    volatile bool measurementReady;
+    uint16_t latestMeasurements[10];
+
+    static void measurementTask(void* parameter);
+
    public:
     DistanceManager();
 
     void initAddresses();
 
+    void startMeasurementTask();
+
     uint16_t measure(SensorDirection direction);
 
     void measureAll(uint16_t result[10]);
+
+    void requestMeasurement();
+
+    bool isMeasurementReady();
+
+    void getLatestMeasurements(uint16_t result[10]);
+
+    void clearMeasurementReady();
 
     SensorDirection* getSensorsOrder() {
         return sensorsOrder;

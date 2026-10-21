@@ -91,4 +91,7 @@ class DistanceManager {
     String directionToString(SensorDirection direction);
 
     String directionToString(uint8_t sensorIndex);
+
+    // Wire name of the sensor at `sensorIndex` in sweep order (static storage; empty if out of range).
+    const char* sensorName(uint8_t sensorIndex) const;
 };

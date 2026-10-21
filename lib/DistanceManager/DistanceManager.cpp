@@ -64,6 +64,13 @@ String DistanceManager::directionToString(uint8_t sensorIndex) {
     return directionToString(direction);
 }
 
+const char* DistanceManager::sensorName(uint8_t sensorIndex) const {
+    if (sensorIndex >= SENSOR_COUNT || sensorsOrder[sensorIndex] >= SENSOR_COUNT) {
+        return "";
+    }
+    return kSensorNames[sensorsOrder[sensorIndex]];
+}
+
 void DistanceManager::measurementTask(void* parameter) {
     DistanceManager* manager = static_cast<DistanceManager*>(parameter);
     bool stackLogged = false;

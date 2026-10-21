@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 #include <DistanceSensor.h>
+#include <Odometry.h>
+#include <functional>
 
 #define FRONT_ADDRESS 0x30
 #define FRONT_LEFT_45_ADDRESS 0x31
@@ -53,6 +55,9 @@ class DistanceManager {
     bool measurementInProgress;
     bool measurementReady;
     uint16_t latestMeasurements[SENSOR_COUNT];
+    StampedPose latestSweepStart;  // robot pose when the latest sweep started / ended
+    StampedPose latestSweepEnd;
+    std::function<StampedPose()> poseProvider;  // set before startMeasurementTask()
 
     static void measurementTask(void* parameter);
 
@@ -60,6 +65,12 @@ class DistanceManager {
     DistanceManager();
 
     void initAddresses();
+
+    // Called from the Core-0 task at the start and end of every sweep. Must be thread-safe and quick.
+    // Call before startMeasurementTask().
+    void setPoseProvider(std::function<StampedPose()> provider) {
+        poseProvider = provider;
+    }
 
     void startMeasurementTask();
 
@@ -71,6 +82,9 @@ class DistanceManager {
     bool isMeasurementBusy();
 
     void getLatestMeasurements(uint16_t result[SENSOR_COUNT]);
+
+    // The latest sweep and the robot pose at its start and end, read atomically (one lock).
+    void getLatestSweep(uint16_t result[SENSOR_COUNT], StampedPose& start, StampedPose& end);
 
     void clearMeasurementReady();
 

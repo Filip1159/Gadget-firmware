@@ -86,14 +86,19 @@ void DistanceManager::measurementTask(void* parameter) {
 
             // Measure into a private buffer so consumers never see a half-written sweep.
             uint16_t local[SENSOR_COUNT];
+            const StampedPose startPose = manager->poseProvider ? manager->poseProvider() : StampedPose();
             for (uint8_t i = 0; i < SENSOR_COUNT; i++) {
                 local[i] = manager->sensors[manager->sensorsOrder[i]]->measure();
             }
+
+            const StampedPose endPose = manager->poseProvider ? manager->poseProvider() : StampedPose();
 
             xSemaphoreTake(manager->measurementMutex, portMAX_DELAY);
             for (uint8_t i = 0; i < SENSOR_COUNT; i++) {
                 manager->latestMeasurements[i] = local[i];
             }
+            manager->latestSweepStart = startPose;
+            manager->latestSweepEnd = endPose;
             manager->measurementReady = true;
             manager->measurementInProgress = false;
             xSemaphoreGive(manager->measurementMutex);
@@ -148,6 +153,16 @@ void DistanceManager::getLatestMeasurements(uint16_t result[SENSOR_COUNT]) {
     for (uint8_t i = 0; i < SENSOR_COUNT; i++) {
         result[i] = latestMeasurements[i];
     }
+    xSemaphoreGive(measurementMutex);
+}
+
+void DistanceManager::getLatestSweep(uint16_t result[SENSOR_COUNT], StampedPose& start, StampedPose& end) {
+    xSemaphoreTake(measurementMutex, portMAX_DELAY);
+    for (uint8_t i = 0; i < SENSOR_COUNT; i++) {
+        result[i] = latestMeasurements[i];
+    }
+    start = latestSweepStart;
+    end = latestSweepEnd;
     xSemaphoreGive(measurementMutex);
 }
 

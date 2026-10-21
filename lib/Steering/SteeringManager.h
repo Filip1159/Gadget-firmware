@@ -76,6 +76,8 @@ class SteeringManager {
 
     // Pose since power-on or the last resetPose(): mm / radians, +x forward, +y left, theta counter-clockwise.
     Pose getPose();
+    // The pose together with the millis() of the control tick that produced it.
+    StampedPose getStampedPose();
     void resetPose();
 
     // Milliseconds since the control task last completed a tick (large = the task is stuck).

@@ -14,6 +14,12 @@ struct Pose {
     float theta = 0.0f;
 };
 
+// A pose and the robot millis() of the control tick it was computed in.
+struct StampedPose {
+    Pose pose;
+    uint32_t tMs = 0;
+};
+
 class Odometry {
    public:
     Odometry(float mmPerTick, float trackWidthMm);

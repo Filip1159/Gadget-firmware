@@ -28,6 +28,7 @@ void setup() {
     connectionManager.initOta();
     connectionManager.initWebsocket([](const String& message) { commandHandler.handle(message); });
     distanceManager.initAddresses();
+    distanceManager.setPoseProvider([]() { return steeringManager.getStampedPose(); });
     distanceManager.startMeasurementTask();  // Start measurement task on Core 0
     steeringManager.init();
     steeringManager.startTask();  // PID + command timeout run in their own task (Core 1)

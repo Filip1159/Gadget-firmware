@@ -105,9 +105,7 @@ String CommandHandler::poseFrame() {
     return String(buffer);
 }
 
-String CommandHandler::sweepFields(bool corrected) {
-    uint16_t result[SENSOR_COUNT];
-    distance.getLatestMeasurements(result);
+String CommandHandler::sweepFields(uint16_t result[SENSOR_COUNT], bool corrected) {
     String fields;
     for (uint8_t i = 0; i < SENSOR_COUNT; i++) {
         if (corrected) {
@@ -119,9 +117,26 @@ String CommandHandler::sweepFields(bool corrected) {
     return fields;
 }
 
-// One frame per sweep: "MEASURE FRONT=412 FRONT_LEFT_45=OOR ..."
+// Pose at the start and at the end of the sweep (a sweep takes ~390 ms and the robot may move during
+// it), so the UI can interpolate a pose per sensor reading. Same units as POSE.
+String CommandHandler::sweepPoseFrame(const StampedPose& start, const StampedPose& end) {
+    char buffer[160];
+    snprintf(
+        buffer, sizeof(buffer), "SWEEP_POSE T0=%lu X0=%ld Y0=%ld TH0=%ld T1=%lu X1=%ld Y1=%ld TH1=%ld",
+        static_cast<unsigned long>(start.tMs), lroundf(start.pose.x), lroundf(start.pose.y),
+        lroundf(start.pose.theta * 1000.0f), static_cast<unsigned long>(end.tMs), lroundf(end.pose.x),
+        lroundf(end.pose.y), lroundf(end.pose.theta * 1000.0f)
+    );
+    return String(buffer);
+}
+
+// Two frames per sweep, in this order: "SWEEP_POSE ..." then "MEASURE FRONT=412 FRONT_LEFT_45=OOR ..."
 void CommandHandler::broadcastSweep() {
-    connection.send("MEASURE" + sweepFields(true));
+    uint16_t result[SENSOR_COUNT];
+    StampedPose start, end;
+    distance.getLatestSweep(result, start, end);
+    connection.send(sweepPoseFrame(start, end));
+    connection.send("MEASURE" + sweepFields(result, true));
     distance.clearMeasurementReady();
 }
 
@@ -162,8 +177,11 @@ void CommandHandler::finishCalibration() {
 void CommandHandler::calibrationLoop() {
     if (distance.isMeasurementReady()) {
         calDone++;
+        uint16_t result[SENSOR_COUNT];
+        distance.getLatestMeasurements(result);
         connection.send(
-            "CAL " + String(calDistanceMm) + " " + String(calDone) + "/" + String(calTotal) + sweepFields(false)
+            "CAL " + String(calDistanceMm) + " " + String(calDone) + "/" + String(calTotal) +
+            sweepFields(result, false)
         );
         distance.clearMeasurementReady();
         if (calDone >= calTotal) {

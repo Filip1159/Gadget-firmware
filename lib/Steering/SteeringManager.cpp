@@ -220,6 +220,14 @@ Pose SteeringManager::getPose() {
     return odometry.pose();
 }
 
+StampedPose SteeringManager::getStampedPose() {
+    Lock lock(mutex);
+    StampedPose stamped;
+    stamped.pose = odometry.pose();
+    stamped.tMs = static_cast<uint32_t>(lastTickMillis);
+    return stamped;
+}
+
 void SteeringManager::resetPose() {
     Lock lock(mutex);
     odometry.reset();

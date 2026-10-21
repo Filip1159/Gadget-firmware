@@ -40,7 +40,9 @@ class CommandHandler {
     String poseFrame();  // "POSE X=<mm> Y=<mm> TH=<mrad> T=<ms> Q=0"
     // " FRONT=412 FRONT_LEFT_45=OOR ..." for the latest sweep; `corrected` applies the per-sensor
     // calibration curve (MEASURE frames), raw is what CAL frames record.
-    String sweepFields(bool corrected);
+    String sweepFields(uint16_t result[SENSOR_COUNT], bool corrected);
+    // "SWEEP_POSE T0=<ms> X0=<mm> Y0=<mm> TH0=<mrad> T1=<ms> X1=<mm> Y1=<mm> TH1=<mrad>"
+    String sweepPoseFrame(const StampedPose& start, const StampedPose& end);
     void startCalibration(const String& args);
     void calibrationLoop();
     void finishCalibration();

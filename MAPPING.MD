@@ -74,7 +74,7 @@ Plain space-delimited ASCII like the rest of the protocol, no JSON. Implementers
 - [x] **2.2 (5, UI) `map-panel` component.** Standalone, signals, HiDPI canvas with rAF-coalesced repaint (copy the pattern from `robot-preview/`), world-to-screen transform, pan (drag) and zoom (wheel), robot marker with heading, pose trail. Placed next to `<robot-preview>` in `control-panel.html`. *Done when* the marker follows the robot while driving.
 - [x] **2.3 (5, UI) Point cloud.** Project each sensor reading through its mount and the interpolated pose into world coordinates, draw dots coloured by age; OOR readings are skipped. *Done when* driving along a wall gives a roughly straight line of dots.
 - [x] **2.4 (3, UI) Panel controls.** Clear, toggle trail/points/rays, "stationary sweeps only" filter (drop sweeps where the pose moved more than a threshold), min/max range clip, backdrop grid with 1 m scale. *Done when* each control works and is covered by a spec.
-- [ ] **2.5 (5, UI) Raw log record and replay.** Record `POSE` / `SWEEP_POSE` / `MEASURE` frames to a downloadable NDJSON file and replay a file into the same streams. This makes every later algorithm testable offline and gives Vitest real fixtures. *Done when* a recorded drive replays into the panel identically.
+- [x] **2.5 (5, UI) Raw log record and replay.** Record `POSE` / `SWEEP_POSE` / `MEASURE` frames to a downloadable NDJSON file and replay a file into the same streams. This makes every later algorithm testable offline and gives Vitest real fixtures. *Done when* a recorded drive replays into the panel identically.
 
 ### Phase 3: Occupancy grid (~26 pts)
 

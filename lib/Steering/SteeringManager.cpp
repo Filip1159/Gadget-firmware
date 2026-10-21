@@ -7,7 +7,8 @@ constexpr uint16_t PCNT_FILTER_CYCLES = 100;
 constexpr uint32_t CONTROL_TASK_STACK_BYTES = 4096;
 
 SteeringManager::SteeringManager()
-    : left(PCNT_UNIT_0, LEFT_2_PIN, LEFT_1_PIN), right(PCNT_UNIT_1, RIGHT_2_PIN, RIGHT_1_PIN) {
+    : left(PCNT_UNIT_0, LEFT_2_PIN, LEFT_1_PIN, LEFT_ENCODER_SIGN),
+      right(PCNT_UNIT_1, RIGHT_2_PIN, RIGHT_1_PIN, RIGHT_ENCODER_SIGN) {
     mutex = xSemaphoreCreateMutex();
 }
 

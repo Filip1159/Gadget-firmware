@@ -54,11 +54,11 @@ Plain space-delimited ASCII like the rest of the protocol, no JSON. Implementers
 
 ### Phase 0: Foundations and calibration (~13 pts)
 
-- [ ] **0.1 (2, DOC) Housekeeping.** `CLAUDE.md:28` says the PCNT counter is cleared every tick, but the code diffs against `lastRawCount` and only clears at |raw| > 16000. `CLAUDE.md:19` refers to a `STATUS.MD` that is not in the repo. Fix both and add a pointer to this file. *Done when* `CLAUDE.md` matches the code.
-- [ ] **0.2 (3, FW) Robot constants.** Add `lib/Steering/RobotGeometry.h`: encoder pulses per wheel revolution (turn a wheel by hand one revolution and read the counter), wheel diameter (80 mm nominal, verify), track width (measure), derived pulses-per-mm, and the sensor mounts (copied from the UI geometry, converted to the frame above). *Done when* every constant is documented with how it was measured.
-- [ ] **0.3 (3, FW) Signed wheel ticks.** `PidController::loop` takes `abs()` of the tick delta, so direction is lost. Expose the signed delta for odometry without changing PID behaviour, and verify the sign per wheel (the motors are mirrored; use a per-wheel sign constant). *Done when* a serial print shows +/+ for `FORWARD`, -/- for `BACKWARD`, and opposite signs for `LEFT`/`RIGHT` spins.
-- [ ] **0.4 (3, HW+FW) Sensor characterisation.** Log 100 samples per sensor against a flat wall at 100 / 300 / 600 / 1000 mm. Record bias, noise and practical max range per sensor (FRONT_LEFT and BACK_LEFT are known to be noisy at the edge of range). Store a per-sensor offset and a "trusted max range". Do not change the sweep flow (see `SENSOR_FLOW.md`). *Done when* the table is in this file.
-- [ ] **0.5 (2, FW) Host-side tests.** Add a PlatformIO `native` environment and put the pose math in a hardware-free module so it can be tested in `test/` (currently empty). *Done when* `pio test -e native` runs at least one odometry test.
+- [x] **0.1 (2, DOC) Housekeeping.** `CLAUDE.md:28` says the PCNT counter is cleared every tick, but the code diffs against `lastRawCount` and only clears at |raw| > 16000. `CLAUDE.md:19` refers to a `STATUS.MD` that is not in the repo. Fix both and add a pointer to this file. *Done when* `CLAUDE.md` matches the code.
+- [x] **0.2 (3, FW) Robot constants.** Add `lib/Steering/RobotGeometry.h`: encoder pulses per wheel revolution (turn a wheel by hand one revolution and read the counter), wheel diameter (80 mm nominal, verify), track width (measure), derived pulses-per-mm, and the sensor mounts (copied from the UI geometry, converted to the frame above). *Done when* every constant is documented with how it was measured.
+- [x] **0.3 (3, FW) Signed wheel ticks.** `PidController::loop` takes `abs()` of the tick delta, so direction is lost. Expose the signed delta for odometry without changing PID behaviour, and verify the sign per wheel (the motors are mirrored; use a per-wheel sign constant). *Done when* a serial print shows +/+ for `FORWARD`, -/- for `BACKWARD`, and opposite signs for `LEFT`/`RIGHT` spins.
+- [x] **0.4 (3, HW+FW) Sensor characterisation.** Log 100 samples per sensor against a flat wall at 100 / 300 / 600 / 1000 mm. Record bias, noise and practical max range per sensor (FRONT_LEFT and BACK_LEFT are known to be noisy at the edge of range). Store a per-sensor offset and a "trusted max range". Do not change the sweep flow (see `SENSOR_FLOW.md`). *Tooling ready:* `CAL <mm> <count>` in the firmware, the "Sensor calibration" panel in Gadget-UI (records a CSV), and `tools/analyze_sensors.py` (prints the table and the C++ arrays); the correction curves are applied to `MEASURE` frames in firmware (`lib/SensorCalibration`), `CAL` frames stay raw. Results below. *Done when* the table is in this file.
+- [x] **0.5 (2, FW) Host-side tests.** Add a PlatformIO `native` environment and put the pose math in a hardware-free module so it can be tested in `test/` (currently empty). *Done when* `pio test -e native` runs at least one odometry test.
 
 ### Phase 1: Odometry / dead reckoning (~19 pts)
 
@@ -135,6 +135,31 @@ Biggest single accuracy gain: wheel-only heading drifts fastest.
 - [ ] **10.2 (5, DOC) Comparison.** Compare the browser SLAM map with the `slam_toolbox` map on the same raw log (2.5). *Done when* the comparison is written up here.
 
 Total: ~215 points (phases 0-4, the MVP, ~95).
+
+## Sensor characterisation results (item 0.4)
+
+Recorded 2026-10-21 with `CAL` (100 sweeps per sensor and distance, flat wall, robot still, distance from a ruler). Bias = mean raw reading minus true distance, in mm; std at 1000 mm in mm.
+
+| Sensor | Bias @100 | @300 | @600 | @1000 | Std @1000 |
+|---|---|---|---|---|---|
+| FRONT | +18.3 | +41.8 | +53.5 | +62.6 | 6.8 |
+| FRONT_LEFT_45 | +39.2 | +53.3 | +57.7 | +78.2 | 4.5 |
+| FRONT_LEFT | +11.4 | +30.3 | +39.2 | +49.3 | 6.5 |
+| FRONT_RIGHT_45 | +17.8 | +38.1 | +45.8 | +61.8 | 5.8 |
+| FRONT_RIGHT | +14.5 | +28.5 | +34.2 | +34.7 | 6.6 |
+| BACK | +30.7 | +39.9 | +45.7 | +58.7 | 5.3 |
+| BACK_LEFT_45 | +21.1 | +42.0 | +50.2 | +52.8 | 5.5 |
+| BACK_LEFT | +29.2 | +55.6 | +72.5 | +87.3 | 6.8 |
+| BACK_RIGHT_45 | +21.5 | +22.5 | +10.8 | -62.5 | 7.1 |
+| BACK_RIGHT | +16.7 | +21.0 | -2.0 | -86.4 | 7.9 |
+
+Findings:
+
+- **Noise is low** (std 1.4-2.3 mm at 100-300 mm, 3-4 mm at 600 mm, 4.5-8 mm at 1000 mm) and every sensor passes the trusted-range rule up to 1000 mm, the farthest distance tested. Readings beyond 1000 mm were not tested; the sensors usually stay in range further.
+- **The bias is not a constant offset.** Most sensors read long, by 11-39 mm at 100 mm growing to 35-87 mm at 1000 mm; the two BACK_RIGHT sensors read short at long range (-62 and -86 mm at 1000 mm). A flat offset would leave 20-60 mm of error, so the firmware applies a per-sensor piecewise-linear curve through the four measured points (`lib/SensorCalibration/SensorCalibrationData.h`, regenerate with `tools/analyze_sensors.py`). Each reference point is exact; between points it is an interpolation from only four measurements.
+- **BACK_RIGHT / BACK_RIGHT_45 slope below 1 is unexplained.** It may be a real per-sensor gain error or a setup issue (robot not square to the wall, wrong zero point for that run). Re-measure one of them before trusting its curve beyond 600 mm.
+- **Last sample of every run was a bogus all-OOR sweep** (sample 100 of 100 in all 40 runs: every sensor out of range). It does not affect means or std (OOR is excluded), only the OOR rate (1%). Cause not yet identified (to check: does `CAL 300 5` also end with an all-OOR sample 5?). The first 99 samples of each run are normal.
+- FRONT_LEFT and BACK_LEFT, known to be noisy at the edge of their range, were no noisier than the others up to 1000 mm here.
 
 ## Risks and limits
 

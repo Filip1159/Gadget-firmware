@@ -24,9 +24,13 @@ class PidController {
     int16_t targetSpeed = 0;
     unsigned long lastLoopMicros = 0;
     int16_t lastRawCount = 0;
+    int8_t encoderSign;
+    int16_t lastSignedDelta = 0;
 
    public:
-    PidController(pcnt_unit_t pcntUnit, uint8_t motorPin1, uint8_t motorPin2);
+    // encoderSign (+1 or -1) makes the signed tick delta positive when the wheel drives the robot
+    // forward; the motors are mirrored, so it is per wheel.
+    PidController(pcnt_unit_t pcntUnit, uint8_t motorPin1, uint8_t motorPin2, int8_t encoderSign = 1);
     void loop();
     void reset();
     void setPid(float P, float I, float D) {
@@ -34,6 +38,11 @@ class PidController {
         this->Kp = P;
         this->Ki = I;
         this->Kd = D;
+    }
+    // Signed encoder ticks seen by the last loop() (positive = robot-forward). Counted also while
+    // stopped, so coasting is included. Read under the same lock that guards loop().
+    int16_t getSignedDelta() const {
+        return lastSignedDelta;
     }
     float getKp() const {
         return Kp;

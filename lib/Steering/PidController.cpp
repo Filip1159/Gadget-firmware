@@ -1,7 +1,7 @@
 #include <PidController.h>
 
-PidController::PidController(pcnt_unit_t pcntUnit, uint8_t motorPin1, uint8_t motorPin2)
-    : pcntUnit(pcntUnit), motorPin1(motorPin1), motorPin2(motorPin2) {}
+PidController::PidController(pcnt_unit_t pcntUnit, uint8_t motorPin1, uint8_t motorPin2, int8_t encoderSign)
+    : pcntUnit(pcntUnit), motorPin1(motorPin1), motorPin2(motorPin2), encoderSign(encoderSign) {}
 
 void PidController::reset() {
     integral = 0;
@@ -16,12 +16,20 @@ void PidController::loop() {
     // (+-32767), which loses at most the few pulses of that one tick.
     int16_t raw = 0;
     pcnt_get_counter_value(pcntUnit, &raw);
-    int16_t count = abs(static_cast<int16_t>(raw - lastRawCount));
+    int16_t signedDelta = static_cast<int16_t>(raw - lastRawCount);
+    lastSignedDelta = static_cast<int16_t>(signedDelta * encoderSign);
+    int16_t count = abs(signedDelta);
     lastRawCount = raw;
     if (abs(raw) > 16000) {
         pcnt_counter_clear(pcntUnit);
         lastRawCount = 0;
     }
+
+#ifdef DEBUG_TICKS
+    if (signedDelta != 0) {
+        Serial.printf("TICKS unit=%d delta=%d\n", static_cast<int>(pcntUnit), lastSignedDelta);
+    }
+#endif
 
     // Real elapsed time instead of assuming exactly 100ms between ticks.
     unsigned long now = micros();

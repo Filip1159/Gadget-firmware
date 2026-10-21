@@ -16,6 +16,11 @@
 #define RIGHT_ENCODER_A 1  // Arduino A0
 #define RIGHT_ENCODER_B 2  // Arduino A1
 
+// Per-wheel sign that makes the PCNT delta positive for robot-forward motion (motors are mirrored).
+// Verify with -DDEBUG_TICKS (see platformio.ini): FORWARD must print positive deltas on both wheels.
+#define LEFT_ENCODER_SIGN -1
+#define RIGHT_ENCODER_SIGN -1
+
 // Failsafe: the frontend repeats the active direction every 500ms while a button/key is held.
 // If nothing arrives within this window, the control task stops the robot by itself.
 #define COMMAND_TIMEOUT_MS 1000

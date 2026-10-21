@@ -24,3 +24,4 @@ jobs:
       - run: cp lib/ConnectionManager/secrets.h.example lib/ConnectionManager/secrets.h
       - run: pio run -e arduino_nano_esp32
       - run: pio check --fail-on-defect=medium
+      - run: pio test -e native

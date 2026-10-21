@@ -8,6 +8,9 @@
 #define MEASUREMENT_INTERVAL_MS 200
 #define MAX_SPEED 2000
 
+// Pose broadcast period while clients are connected.
+#define POSE_INTERVAL_MS 200
+
 // Sensor characterisation (MAPPING.MD item 0.4): `CAL <distance_mm> <count>` ranges <count> sweeps in a row.
 #define CAL_MAX_DISTANCE_MM 2000
 #define CAL_MAX_COUNT 500
@@ -24,6 +27,7 @@ class CommandHandler {
 
     bool continuousMeasurement = false;
     unsigned long lastMeasurementRequestMillis = 0;
+    unsigned long lastPoseMillis = 0;
 
     // Characterisation run (CAL): true between CAL and its CAL_DONE.
     bool calibrating = false;
@@ -33,6 +37,7 @@ class CommandHandler {
 
     void reject(const String& reason);
     void broadcastSweep();
+    String poseFrame();  // "POSE X=<mm> Y=<mm> TH=<mrad> T=<ms> Q=0"
     // " FRONT=412 FRONT_LEFT_45=OOR ..." for the latest sweep; `corrected` applies the per-sensor
     // calibration curve (MEASURE frames), raw is what CAL frames record.
     String sweepFields(bool corrected);
@@ -49,6 +54,7 @@ class CommandHandler {
     // A client went away: stop the robot and stop sweeping for nobody.
     void onClientDisconnected();
 
+    // Also sends the current POSE to that client.
     // "STATE SPEED=<n> P=<f> I=<f> D=<f> MEASURING=<0|1>", so the UI can initialise from the robot.
     void sendState(uint8_t clientNum);
 

@@ -204,4 +204,23 @@ void SteeringManager::tickLocked() {
     }
     left.loop();
     right.loop();
+    // The PID loops consume the encoder counters every tick (also while stopped, so coasting counts).
+    odometry.update(left.getSignedDelta(), right.getSignedDelta());
+#ifdef DEBUG_POSE
+    static uint8_t poseTick = 0;
+    if (++poseTick % 5 == 0) {
+        const Pose& pose = odometry.pose();
+        Serial.println("POSE x=" + String(pose.x, 1) + " y=" + String(pose.y, 1) + " th=" + String(pose.theta, 3));
+    }
+#endif
+}
+
+Pose SteeringManager::getPose() {
+    Lock lock(mutex);
+    return odometry.pose();
+}
+
+void SteeringManager::resetPose() {
+    Lock lock(mutex);
+    odometry.reset();
 }

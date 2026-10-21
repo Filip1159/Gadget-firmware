@@ -16,13 +16,12 @@ void PidController::loop() {
     // (+-32767), which loses at most the few pulses of that one tick.
     int16_t raw = 0;
     pcnt_get_counter_value(pcntUnit, &raw);
-    int16_t signedDelta = static_cast<int16_t>(raw - lastRawCount);
+    const EncoderTracker::Reading reading = encoder.update(raw);
+    const int16_t signedDelta = reading.delta;
     lastSignedDelta = static_cast<int16_t>(signedDelta * encoderSign);
     int16_t count = abs(signedDelta);
-    lastRawCount = raw;
-    if (abs(raw) > 16000) {
+    if (reading.clearCounter) {
         pcnt_counter_clear(pcntUnit);
-        lastRawCount = 0;
     }
 
 #ifdef DEBUG_TICKS

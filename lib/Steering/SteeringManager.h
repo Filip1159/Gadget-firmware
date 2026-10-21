@@ -2,7 +2,9 @@
 
 #include <Arduino.h>
 #include <DriveDirection.h>
+#include <Odometry.h>
 #include <PidController.h>
+#include <RobotGeometry.h>
 #include <driver/pcnt.h>
 
 #define LEFT_1_PIN 5
@@ -40,6 +42,8 @@ class SteeringManager {
     DriveDirection direction = STOP;
     unsigned long lastCommandMillis = 0;
     volatile unsigned long lastTickMillis = 0;
+    // Dead-reckoned pose, updated every control tick from the signed wheel ticks (mutex-guarded).
+    Odometry odometry{RobotGeometry::MM_PER_TICK, RobotGeometry::TRACK_WIDTH_MM};
     SemaphoreHandle_t mutex;
 
     static void controlTask(void* parameter);
@@ -69,6 +73,10 @@ class SteeringManager {
     void setPid(float P, float I, float D);
     // Both wheels always share the same gains.
     void getPid(float& P, float& I, float& D);
+
+    // Pose since power-on or the last resetPose(): mm / radians, +x forward, +y left, theta counter-clockwise.
+    Pose getPose();
+    void resetPose();
 
     // Milliseconds since the control task last completed a tick (large = the task is stuck).
     unsigned long msSinceLastTick() const {

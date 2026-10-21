@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <DriveDirection.h>
+#include <EncoderTracker.h>
 #include <driver/pcnt.h>
 #include <stdint.h>
 
@@ -23,7 +24,7 @@ class PidController {
     WheelDirection direction = WHEEL_FORWARD;
     int16_t targetSpeed = 0;
     unsigned long lastLoopMicros = 0;
-    int16_t lastRawCount = 0;
+    EncoderTracker encoder;
     int8_t encoderSign;
     int16_t lastSignedDelta = 0;
 

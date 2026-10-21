@@ -46,6 +46,10 @@ void CommandHandler::handle(const String& message) {
         if (calibrating) {
             finishCalibration();
         }
+    } else if (message == "POSE_RESET") {
+        steering.resetPose();
+        Serial.println("Pose reset");
+        connection.send(poseFrame());
     } else if (message == "MEASURE_START") {
         if (calibrating) {
             reject("calibration running");
@@ -86,6 +90,19 @@ void CommandHandler::sendState(uint8_t clientNum) {
         continuousMeasurement ? 1 : 0
     );
     connection.sendTo(clientNum, buffer);
+    connection.sendTo(clientNum, poseFrame());
+}
+
+// X/Y in mm, TH in milliradians (counter-clockwise), T = robot millis(), Q=1 will flag a suspected
+// wheel slip/stall (MAPPING.MD 1.5; always 0 until then).
+String CommandHandler::poseFrame() {
+    const Pose pose = steering.getPose();
+    char buffer[80];
+    snprintf(
+        buffer, sizeof(buffer), "POSE X=%ld Y=%ld TH=%ld T=%lu Q=0", lroundf(pose.x), lroundf(pose.y),
+        lroundf(pose.theta * 1000.0f), millis()
+    );
+    return String(buffer);
 }
 
 String CommandHandler::sweepFields(bool corrected) {
@@ -158,6 +175,12 @@ void CommandHandler::calibrationLoop() {
 }
 
 void CommandHandler::loop() {
+    unsigned long poseNow = millis();
+    if (poseNow - lastPoseMillis >= POSE_INTERVAL_MS) {
+        lastPoseMillis = poseNow;
+        connection.send(poseFrame());  // goes to ready clients only
+    }
+
     if (calibrating) {
         calibrationLoop();
         return;

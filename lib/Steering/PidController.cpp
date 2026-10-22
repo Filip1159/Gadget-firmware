@@ -4,8 +4,7 @@ PidController::PidController(pcnt_unit_t pcntUnit, uint8_t motorPin1, uint8_t mo
     : pcntUnit(pcntUnit), motorPin1(motorPin1), motorPin2(motorPin2), encoderSign(encoderSign) {}
 
 void PidController::reset() {
-    integral = 0;
-    previousError = 0;
+    state.reset();
 }
 
 void PidController::loop() {
@@ -32,11 +31,8 @@ void PidController::loop() {
 
     // Real elapsed time instead of assuming exactly 100ms between ticks.
     unsigned long now = micros();
-    float dt = (now - lastLoopMicros) / 1000000.0f;
+    const float dt = sanitizeDt((now - lastLoopMicros) / 1000000.0f);
     lastLoopMicros = now;
-    if (dt < 0.02f || dt > 0.5f) {
-        dt = 0.1f;  // first tick after a pause, or implausible value
-    }
 
     if (targetSpeed == 0) {
         analogWrite(motorPin1, 0);
@@ -45,30 +41,11 @@ void PidController::loop() {
         return;
     }
 
-    float speed = count / dt;
-
-    float error = targetSpeed - speed;
-
-    float integralNext = integral + error * dt;
-    float derivative = (error - previousError) / dt;
-    previousError = error;
-
-    float unclamped = Kp * error + Ki * integralNext + Kd * derivative;
-    float output = constrain(unclamped, 0.0f, PWM_MAX);
-
-    // Conditional integration anti-windup: keep integrating unless the output is saturated
-    // and the error would push it further into saturation.
-    bool saturatedHigh = unclamped > PWM_MAX && error > 0;
-    bool saturatedLow = unclamped < 0.0f && error < 0;
-    if (!saturatedHigh && !saturatedLow) {
-        integral = integralNext;
-    }
+    const float speed = count / dt;
+    const float output = pidStep(gains, state, targetSpeed, speed, dt);
 
 #ifdef DEBUG_PID
-    Serial.println(
-        String(output) + " | " + Kp * error + " | " + Ki * integral + " | " + Kd * derivative + " || " + error + " | " +
-        speed + " | " + count
-    );
+    Serial.println(String(output) + " | " + (targetSpeed - speed) + " | " + speed + " | " + count);
 #endif
 
     if (direction == WHEEL_FORWARD) {

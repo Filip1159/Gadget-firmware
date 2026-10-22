@@ -3,24 +3,19 @@
 #include <Arduino.h>
 #include <DriveDirection.h>
 #include <EncoderTracker.h>
+#include <PidMath.h>
 #include <driver/pcnt.h>
 #include <stdint.h>
 
-// Maximum analogWrite duty (8-bit PWM).
-constexpr float PWM_MAX = 255.0f;
-
 class PidController {
    private:
-    float Kp = 0.15;
-    float Ki = 0.05;
-    float Kd = 0.0;
+    PidGains gains = {0.15f, 0.05f, 0.0f};
 
     pcnt_unit_t pcntUnit;
     uint8_t motorPin1;
     uint8_t motorPin2;
 
-    float integral = 0;
-    float previousError = 0;
+    PidState state;
     WheelDirection direction = WHEEL_FORWARD;
     int16_t targetSpeed = 0;
     unsigned long lastLoopMicros = 0;
@@ -36,9 +31,7 @@ class PidController {
     void reset();
     void setPid(float P, float I, float D) {
         reset();
-        this->Kp = P;
-        this->Ki = I;
-        this->Kd = D;
+        gains = {P, I, D};
     }
     // Signed encoder ticks seen by the last loop() (positive = robot-forward). Counted also while
     // stopped, so coasting is included. Read under the same lock that guards loop().
@@ -46,13 +39,13 @@ class PidController {
         return lastSignedDelta;
     }
     float getKp() const {
-        return Kp;
+        return gains.kp;
     }
     float getKi() const {
-        return Ki;
+        return gains.ki;
     }
     float getKd() const {
-        return Kd;
+        return gains.kd;
     }
     void setTargetSpeed(WheelDirection direction, uint16_t targetSpeed) {
         this->direction = direction;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Arduino.h>
+#include <stdint.h>
 
 enum DriveDirection {
     FORWARD,
@@ -33,3 +33,7 @@ static const DriveDirectionName kDriveDirectionNames[] = {
     { "BACKWARD_LEFT", BACKWARD_LEFT },
     { "BACKWARD_RIGHT", BACKWARD_RIGHT },
 };
+
+// Looks a wire name up in kDriveDirectionNames (exact, case-sensitive match).
+// Returns false and leaves `out` untouched for anything else.
+bool parseDriveDirection(const char* name, DriveDirection& out);

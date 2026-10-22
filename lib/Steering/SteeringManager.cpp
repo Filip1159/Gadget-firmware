@@ -1,7 +1,5 @@
 #include <SteeringManager.h>
 
-// Inner-wheel speed scale when turning while driving.
-constexpr float TURNING_FACTOR = 0.7f;
 // Glitch filter on the encoder inputs, in APB clock cycles.
 constexpr uint16_t PCNT_FILTER_CYCLES = 100;
 constexpr uint32_t CONTROL_TASK_STACK_BYTES = 4096;
@@ -107,18 +105,17 @@ bool SteeringManager::isMoving() {
 
 bool SteeringManager::setDirection(const String& name) {
     Lock lock(mutex);
-    for (const DriveDirectionName& entry : kDriveDirectionNames) {
-        if (name == entry.name) {
-            if (entry.direction != direction) {
-                left.reset();  // only on an actual direction change; repeats must not wipe the integral
-                right.reset();
-            }
-            direction = entry.direction;
-            lastCommandMillis = millis();
-            return true;
-        }
+    DriveDirection requested;
+    if (!parseDriveDirection(name.c_str(), requested)) {
+        return false;
     }
-    return false;
+    if (requested != direction) {
+        left.reset();  // only on an actual direction change; repeats must not wipe the integral
+        right.reset();
+    }
+    direction = requested;
+    commandTimeout.refresh(millis());
+    return true;
 }
 
 void SteeringManager::stop() {
@@ -156,51 +153,18 @@ void SteeringManager::controlTask(void* parameter) {
 
 void SteeringManager::tickLocked() {
     // Command timeout failsafe: runs here so a stalled network loop cannot delay it.
-    if (direction != STOP && millis() - lastCommandMillis >= COMMAND_TIMEOUT_MS) {
+    if (commandTimeout.expired(millis(), direction != STOP)) {
         Serial.println("Command timeout, stopping");
         direction = STOP;
     }
     lastTickMillis = millis();
 
-    switch (direction) {
-        case FORWARD:
-            left.setTargetSpeed(WHEEL_FORWARD, speed);
-            right.setTargetSpeed(WHEEL_FORWARD, speed);
-            break;
-        case FORWARD_LEFT:
-            left.setTargetSpeed(WHEEL_FORWARD, speed * TURNING_FACTOR);
-            right.setTargetSpeed(WHEEL_FORWARD, speed);
-            break;
-        case FORWARD_RIGHT:
-            left.setTargetSpeed(WHEEL_FORWARD, speed);
-            right.setTargetSpeed(WHEEL_FORWARD, speed * TURNING_FACTOR);
-            break;
-        case LEFT:
-            left.setTargetSpeed(WHEEL_BACKWARD, speed);
-            right.setTargetSpeed(WHEEL_FORWARD, speed);
-            break;
-        case STOP:
-            left.setTargetSpeed(WHEEL_FORWARD, 0);
-            right.setTargetSpeed(WHEEL_FORWARD, 0);
-            left.reset();
-            right.reset();
-            break;
-        case RIGHT:
-            left.setTargetSpeed(WHEEL_FORWARD, speed);
-            right.setTargetSpeed(WHEEL_BACKWARD, speed);
-            break;
-        case BACKWARD:
-            left.setTargetSpeed(WHEEL_BACKWARD, speed);
-            right.setTargetSpeed(WHEEL_BACKWARD, speed);
-            break;
-        case BACKWARD_LEFT:
-            left.setTargetSpeed(WHEEL_BACKWARD, speed * TURNING_FACTOR);
-            right.setTargetSpeed(WHEEL_BACKWARD, speed);
-            break;
-        case BACKWARD_RIGHT:
-            left.setTargetSpeed(WHEEL_BACKWARD, speed);
-            right.setTargetSpeed(WHEEL_BACKWARD, speed * TURNING_FACTOR);
-            break;
+    const WheelTargets targets = mixDrive(direction, speed);
+    left.setTargetSpeed(targets.leftDir, targets.leftSpeed);
+    right.setTargetSpeed(targets.rightDir, targets.rightSpeed);
+    if (direction == STOP) {
+        left.reset();
+        right.reset();
     }
     left.loop();
     right.loop();

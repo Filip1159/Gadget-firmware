@@ -1,7 +1,9 @@
 #pragma once
 
 #include <Arduino.h>
+#include <CommandTimeout.h>
 #include <DriveDirection.h>
+#include <DriveMixer.h>
 #include <Odometry.h>
 #include <PidController.h>
 #include <RobotGeometry.h>
@@ -23,10 +25,6 @@
 #define LEFT_ENCODER_SIGN -1
 #define RIGHT_ENCODER_SIGN -1
 
-// Failsafe: the frontend repeats the active direction every 500ms while a button/key is held.
-// If nothing arrives within this window, the control task stops the robot by itself.
-#define COMMAND_TIMEOUT_MS 1000
-
 // Control period of the PID task.
 #define STEERING_PERIOD_MS 100
 
@@ -40,7 +38,7 @@ class SteeringManager {
     PidController right;
     uint16_t speed = 1000;
     DriveDirection direction = STOP;
-    unsigned long lastCommandMillis = 0;
+    CommandTimeout commandTimeout;
     volatile unsigned long lastTickMillis = 0;
     // Dead-reckoned pose, updated every control tick from the signed wheel ticks (mutex-guarded).
     Odometry odometry{RobotGeometry::MM_PER_TICK, RobotGeometry::TRACK_WIDTH_MM};

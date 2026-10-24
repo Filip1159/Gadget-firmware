@@ -2,6 +2,15 @@
 
 Firmware for **Gadget**, a small 2-wheeled exploring robot built on an Arduino Nano ESP32. It is driven from the browser by the companion app, [Gadget-UI](https://github.com/Filip1159/Gadget-UI)
 
+## Photos
+
+| | |
+|:---:|:---:|
+| <img src="img/gadget-front.jpg" width="400" alt="Gadget front"> | <img src="img/gadget-back.jpg" width="400" alt="Gadget back"> |
+| <img src="img/gadget-front2.jpg" width="400" alt="Gadget front, sensor layout"> | <img src="img/gadget-back2.jpg" width="400" alt="Gadget back, electronics"> |
+| <img src="img/gadget-top.jpg" width="400" alt="Gadget top"> | <img src="img/gadget-bottom.jpg" width="400" alt="Gadget bottom"> |
+| <img src="img/gadget-arduino.jpg" width="400" alt="Gadget Arduino Nano ESP32 board"> | |
+
 ## Hardware
 
 - Arduino Nano ESP32 (ESP32-S3, dual core)

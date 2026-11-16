@@ -1,6 +1,7 @@
 #include <CommandHandler.h>
 #include <ConnectionManager.h>
 #include <DistanceManager.h>
+#include <GyroTracker.h>
 #include <Imu.h>
 #include <SteeringManager.h>
 
@@ -11,6 +12,7 @@ ConnectionManager connectionManager;
 DistanceManager distanceManager;
 Imu imu;
 SteeringManager steeringManager;
+GyroTracker gyroTracker(imu, []() { return !steeringManager.isMoving(); });
 CommandHandler commandHandler(steeringManager, distanceManager, connectionManager, imu);
 
 unsigned long previousHeartbeatMillis = 0;
@@ -34,6 +36,7 @@ void setup() {
     distanceManager.setPoseProvider([]() { return steeringManager.getStampedPose(); });
     distanceManager.startMeasurementTask();  // Start measurement task on Core 0
     steeringManager.init();
+    gyroTracker.startTask();  // bias calibration needs the robot still for ~2.5 s after boot
     steeringManager.startTask();  // PID + command timeout run in their own task (Core 1)
 
     // Loop watchdog: if loop() hangs for more than the task WDT timeout (5s) the board resets,

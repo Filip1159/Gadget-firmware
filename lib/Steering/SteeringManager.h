@@ -4,10 +4,13 @@
 #include <CommandTimeout.h>
 #include <DriveDirection.h>
 #include <DriveMixer.h>
+#include <HeadingFusion.h>
 #include <Odometry.h>
 #include <PidController.h>
 #include <RobotGeometry.h>
 #include <driver/pcnt.h>
+
+#include <functional>
 
 #define LEFT_1_PIN 5
 #define LEFT_2_PIN 4
@@ -42,6 +45,9 @@ class SteeringManager {
     volatile unsigned long lastTickMillis = 0;
     // Dead-reckoned pose, updated every control tick from the signed wheel ticks (mutex-guarded).
     Odometry odometry{RobotGeometry::MM_PER_TICK, RobotGeometry::TRACK_WIDTH_MM};
+    // Heading change per tick: from the gyro while `headingProvider` delivers a yaw, else from the wheels.
+    HeadingFusion headingFusion;
+    std::function<bool(float&)> headingProvider;
     SemaphoreHandle_t mutex;
 
     static void controlTask(void* parameter);
@@ -52,6 +58,13 @@ class SteeringManager {
     SteeringManager(const SteeringManager&) = delete;  // owns a mutex
     SteeringManager& operator=(const SteeringManager&) = delete;
     void init();
+
+    // Source of the gyro yaw (radians, wrapping at +-pi): returns false when there is no usable one, and the
+    // odometry heading then comes from the wheels. Set before startTask(); called from the control task
+    // with the steering mutex held, so it must not call back into this class.
+    void setHeadingProvider(std::function<bool(float&)> provider) {
+        headingProvider = std::move(provider);
+    }
 
     // Starts the control task (Core 1, higher priority than loop()). Call after init().
     void startTask();

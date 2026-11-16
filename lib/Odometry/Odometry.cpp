@@ -19,11 +19,18 @@ float normalizeAngle(float angle) {
 
 Odometry::Odometry(float mmPerTick, float trackWidthMm) : mmPerTick(mmPerTick), trackWidthMm(trackWidthMm) {}
 
+float Odometry::wheelHeadingChange(int32_t leftTicks, int32_t rightTicks) const {
+    return static_cast<float>(rightTicks - leftTicks) * mmPerTick / trackWidthMm;
+}
+
 void Odometry::update(int32_t leftTicks, int32_t rightTicks) {
+    update(leftTicks, rightTicks, wheelHeadingChange(leftTicks, rightTicks));
+}
+
+void Odometry::update(int32_t leftTicks, int32_t rightTicks, float deltaTheta) {
     const float leftMm = static_cast<float>(leftTicks) * mmPerTick;
     const float rightMm = static_cast<float>(rightTicks) * mmPerTick;
     const float distance = (leftMm + rightMm) / 2.0f;
-    const float deltaTheta = (rightMm - leftMm) / trackWidthMm;
 
     const float midTheta = current.theta + deltaTheta / 2.0f;
     current.x += distance * cosf(midTheta);

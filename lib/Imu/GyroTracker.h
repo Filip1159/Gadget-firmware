@@ -9,6 +9,9 @@
 // Gyro sampling period; matches the BMI160's 100 Hz output rate.
 #define GYRO_PERIOD_MS 10
 
+// A yaw whose last sample is older than this is not used for the heading (see GyroTracker::tryYaw).
+#define GYRO_MAX_AGE_MS 150
+
 // Orientation of the board on the robot, established with IMU_CHECK (2026-11-16): flat, Z up, so the
 // robot's counter-clockwise yaw rate is +gz. If the board is ever remounted, re-run IMU_CHECK.
 inline float yawRateDps(const ImuSample& sample) {
@@ -24,6 +27,7 @@ class GyroTracker {
     std::function<bool()> isStationary;
     GyroYaw gyro;
     SemaphoreHandle_t mutex;
+    uint32_t lastSampleMillis = 0;  // millis() of the last good sample (mutex-guarded)
 
     static void task(void* parameter);
 
@@ -40,5 +44,8 @@ class GyroTracker {
     // Yaw since the first calibration or the last resetYaw(): radians in (-pi, pi], counter-clockwise.
     float yawRad();
     float biasDps();
+    // For the odometry: true and the yaw if the gyro is calibrated and its last sample is fresh (a stale
+    // yaw would freeze the heading while the robot turns).
+    bool tryYaw(float& yawRad);
     void resetYaw();
 };

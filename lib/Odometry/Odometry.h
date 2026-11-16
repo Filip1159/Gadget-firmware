@@ -28,6 +28,13 @@ class Odometry {
     // for the translation is the mean of the heading before and after the tick).
     void update(int32_t leftTicks, int32_t rightTicks);
 
+    // Heading change (radians, counter-clockwise) the wheels alone imply for these tick deltas.
+    float wheelHeadingChange(int32_t leftTicks, int32_t rightTicks) const;
+
+    // Same, but the heading change comes from elsewhere (the gyro, see HeadingFusion): the distance still
+    // comes from the wheels and is laid along the mean heading of the tick.
+    void update(int32_t leftTicks, int32_t rightTicks, float headingChange);
+
     // Back to (0, 0, 0).
     void reset();
 

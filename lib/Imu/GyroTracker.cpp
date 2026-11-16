@@ -31,6 +31,7 @@ void GyroTracker::task(void* parameter) {
 
         xSemaphoreTake(tracker->mutex, portMAX_DELAY);
         tracker->gyro.update(yawRateDps(sample), nowUs, stationary);
+        tracker->lastSampleMillis = millis();
         const bool calibrated = tracker->gyro.calibrated();
         const float yaw = tracker->gyro.yawRad();
         const float bias = tracker->gyro.biasDps();
@@ -63,6 +64,16 @@ float GyroTracker::yawRad() {
     const float value = gyro.yawRad();
     xSemaphoreGive(mutex);
     return value;
+}
+
+bool GyroTracker::tryYaw(float& yawRad) {
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    const bool usable = gyro.calibrated() && (millis() - lastSampleMillis) <= GYRO_MAX_AGE_MS;
+    if (usable) {
+        yawRad = gyro.yawRad();
+    }
+    xSemaphoreGive(mutex);
+    return usable;
 }
 
 float GyroTracker::biasDps() {

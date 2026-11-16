@@ -154,12 +154,20 @@ void SteeringManager::tickLocked() {
     left.loop();
     right.loop();
     // The PID loops consume the encoder counters every tick (also while stopped, so coasting counts).
-    odometry.update(left.getSignedDelta(), right.getSignedDelta());
+    const int32_t leftTicks = left.getSignedDelta();
+    const int32_t rightTicks = right.getSignedDelta();
+    float gyroYaw = 0.0f;
+    const bool gyroValid = headingProvider && headingProvider(gyroYaw);
+    odometry.update(
+        leftTicks, rightTicks,
+        headingFusion.update(gyroValid, gyroYaw, odometry.wheelHeadingChange(leftTicks, rightTicks))
+    );
 #ifdef DEBUG_POSE
     static uint8_t poseTick = 0;
     if (++poseTick % 5 == 0) {
         const Pose& pose = odometry.pose();
-        Serial.println("POSE x=" + String(pose.x, 1) + " y=" + String(pose.y, 1) + " th=" + String(pose.theta, 3));
+        Serial.println("POSE x=" + String(pose.x, 1) + " y=" + String(pose.y, 1) + " th=" + String(pose.theta, 3) +
+                       (headingFusion.usingGyro() ? " (gyro)" : " (wheels)"));
     }
 #endif
 }

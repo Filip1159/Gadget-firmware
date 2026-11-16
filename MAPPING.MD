@@ -104,7 +104,7 @@ Biggest single accuracy gain: wheel-only heading drifts fastest.
 
 - [ ] **6.1 (3, HW) Pick and wire an IMU.** MPU-6050 or ICM-42688 (gyro only needed), or BNO055 (on-chip fusion), on the existing I2C bus. Check address conflicts with the VL53L0X range (0x30-0x39) and that sweep timing is unaffected: ranging is blocking I2C on Core 0, so use that task or a mutex-guarded bus. *Done when* the IMU is read while sweeps run with no change in sweep time or errors.
 - [ ] **6.2 (5, FW) Gyro driver.** *(implemented in `lib/GyroYaw` + `GyroTracker`, host-tested; the drift number below still has to be measured on the robot with `-DDEBUG_GYRO`)* Bias calibration at boot (robot stationary ~2 s), yaw integration, note temperature drift. *Done when* a stationary robot's yaw drifts less than ~1 deg/min.
-- [ ] **6.3 (5, FW) Fusion.** Take theta from the gyro (complementary filter or a small EKF against odometry theta); position still from the encoders. `POSE` format unchanged. *Done when* a 360 deg spin returns within ~2 deg.
+- [ ] **6.3 (5, FW) Fusion.** *(implemented as gyro heading + wheel distance with a wheel-only fallback, `lib/Odometry/HeadingFusion`, host-tested; the 360 deg result still has to be measured on the robot)* Take theta from the gyro (complementary filter or a small EKF against odometry theta); position still from the encoders. `POSE` format unchanged. *Done when* a 360 deg spin returns within ~2 deg.
 - [ ] **6.4 (3, FW+DOC) Recalibrate.** Re-run 1.4 and record the improved drift. *Done when* before/after numbers are in this file.
 
 ### Phase 7: Scan matching and SLAM-lite (~29 pts)

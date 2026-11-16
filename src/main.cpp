@@ -36,6 +36,7 @@ void setup() {
     distanceManager.setPoseProvider([]() { return steeringManager.getStampedPose(); });
     distanceManager.startMeasurementTask();  // Start measurement task on Core 0
     steeringManager.init();
+    steeringManager.setHeadingProvider([](float& yaw) { return gyroTracker.tryYaw(yaw); });
     gyroTracker.startTask();  // bias calibration needs the robot still for ~2.5 s after boot
     steeringManager.startTask();  // PID + command timeout run in their own task (Core 1)
 

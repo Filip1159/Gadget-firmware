@@ -54,6 +54,23 @@ void test_cal_frames() {
     TEST_ASSERT_EQUAL_STRING("CAL_DONE 300 100", formatCalDone(300, 100).c_str());
 }
 
+void test_imu_orient_frame() {
+    ImuOrientationCheck::Result result;
+    result.verdict = ImuOrientationCheck::Verdict::Ok;
+    result.up = {2, 1};
+    result.yaw = {2, 1};
+    result.tiltDeg = 2.4f;
+    result.rateDps = 84.6f;
+    TEST_ASSERT_EQUAL_STRING("IMU_ORIENT RESULT=ok UP=+Z YAW=+Z TILT=2 RATE=85", formatImuOrient(result).c_str());
+
+    result.verdict = ImuOrientationCheck::Verdict::NoData;
+    result.up = SignedAxis();
+    result.yaw = SignedAxis();
+    result.tiltDeg = 0;
+    result.rateDps = 0;
+    TEST_ASSERT_EQUAL_STRING("IMU_ORIENT RESULT=no_data UP=? YAW=? TILT=0 RATE=0", formatImuOrient(result).c_str());
+}
+
 void test_parse_uint_accepts_digits_with_surrounding_whitespace() {
     long value = -1;
     TEST_ASSERT_TRUE(parseUint("800", value));
@@ -123,6 +140,7 @@ int main() {
     RUN_TEST(test_sweep_fields_write_oor_for_the_out_of_range_marker);
     RUN_TEST(test_state_frame);
     RUN_TEST(test_cal_frames);
+    RUN_TEST(test_imu_orient_frame);
     RUN_TEST(test_parse_uint_accepts_digits_with_surrounding_whitespace);
     RUN_TEST(test_parse_uint_rejects_everything_else);
     RUN_TEST(test_parse_uint_saturates_instead_of_wrapping);

@@ -33,6 +33,12 @@ void CommandHandler::handle(const String& message) {
         if (calibration.active()) {
             finishCalibration();
         }
+    } else if (message == "IMU_CHECK") {
+        startImuCheck();
+    } else if (message == "IMU_CHECK_STOP") {
+        if (imuCheck.active()) {
+            abortImuCheck();
+        }
     } else if (message == "POSE_RESET") {
         steering.resetPose();
         Serial.println("Pose reset");
@@ -55,6 +61,9 @@ void CommandHandler::handle(const String& message) {
         // One-time measurement on Core 0 (non-blocking)
         distance.requestMeasurement();
     } else {
+        if (imuCheck.active()) {
+            abortImuCheck();  // the person driving wins; the robot is stopped before the command applies
+        }
         if (!steering.setDirection(message)) {
             reject("unknown command");
             return;
@@ -66,6 +75,7 @@ void CommandHandler::onClientDisconnected() {
     steering.stop();
     continuousMeasurement = false;
     calibration.end();  // nobody is listening any more
+    imuCheck.abort();   // the robot was already stopped above
 }
 
 void CommandHandler::sendState(uint8_t clientNum) {
@@ -147,11 +157,70 @@ void CommandHandler::calibrationLoop() {
     }
 }
 
+// "IMU_CHECK": the robot stands still for ~1 s, then spins LEFT in place for ~2 s while the IMU is read,
+// and answers "IMU_ORIENT RESULT=<verdict> UP=<axis> YAW=<axis> TILT=<deg> RATE=<deg/s>". RESULT=ok means
+// the board's up axis (from gravity) and its spin axis (from the spin) agree; YAW is then the sensor axis
+// (with sign) whose rate is the robot's counter-clockwise yaw rate.
+void CommandHandler::startImuCheck() {
+    if (!imu.isOnline()) {
+        reject("imu offline");
+        return;
+    }
+    if (imuCheck.active()) {
+        reject("imu check running");
+        return;
+    }
+    if (calibration.active()) {
+        reject("calibration running");
+        return;
+    }
+    if (steering.isMoving()) {
+        reject("robot moving");
+        return;
+    }
+    continuousMeasurement = false;
+    lastImuCheckMillis = 0;
+    imuCheck.start(millis());
+    Serial.println("IMU check started: keep the robot still, then it spins LEFT in place");
+}
+
+void CommandHandler::abortImuCheck() {
+    imuCheck.abort();
+    steering.stop();
+    const String frame = toString(formatImuOrient(imuCheck.result()));
+    Serial.println(frame);
+    connection.send(frame);
+}
+
+void CommandHandler::imuCheckLoop() {
+    const unsigned long now = millis();
+    if (now - lastImuCheckMillis < IMU_CHECK_PERIOD_MS) {
+        return;
+    }
+    lastImuCheckMillis = now;
+
+    ImuSample sample;
+    const bool haveSample = imu.read(sample);
+    const bool finished = imuCheck.update(now, haveSample ? &sample : nullptr);
+    if (finished) {
+        steering.stop();
+        const String frame = toString(formatImuOrient(imuCheck.result()));
+        Serial.println(frame);
+        connection.send(frame);
+    } else if (imuCheck.wantSpin()) {
+        steering.setDirection("LEFT");  // also refreshes the 1 s command timeout
+    }
+}
+
 void CommandHandler::loop() {
     unsigned long poseNow = millis();
     if (poseNow - lastPoseMillis >= POSE_INTERVAL_MS) {
         lastPoseMillis = poseNow;
         connection.send(poseFrame());  // goes to ready clients only
+    }
+
+    if (imuCheck.active()) {
+        imuCheckLoop();
     }
 
     if (calibration.active()) {

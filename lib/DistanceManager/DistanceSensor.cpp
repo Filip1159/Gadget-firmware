@@ -1,5 +1,6 @@
 #include <Adafruit_VL53L0X.h>
 #include <DistanceSensor.h>
+#include <I2cBus.h>
 
 DistanceSensor::DistanceSensor(int address, uint8_t shtPin) : address{ address }, shtPin{ shtPin } {
 }
@@ -24,6 +25,7 @@ uint16_t DistanceSensor::measure() {
         return OUT_OF_RANGE_MM;
     }
     VL53L0X_RangingMeasurementData_t measure = {};
+    I2cBus::Lock lock;  // shared Wire bus (the IMU is read from another task)
     VL53L0X_Error status = sensor.rangingTest(&measure, false);
     if (status != VL53L0X_ERROR_NONE) {
         return OUT_OF_RANGE_MM;

@@ -54,6 +54,16 @@ std::string formatCalDone(unsigned distanceMm, unsigned done) {
     return "CAL_DONE " + std::to_string(distanceMm) + " " + std::to_string(done);
 }
 
+std::string formatImuOrient(const ImuOrientationCheck::Result& result) {
+    char buffer[96];
+    snprintf(
+        buffer, sizeof(buffer), "IMU_ORIENT RESULT=%s UP=%s YAW=%s TILT=%ld RATE=%ld",
+        ImuOrientationCheck::verdictName(result.verdict), result.up.name(), result.yaw.name(),
+        lroundf(result.tiltDeg), lroundf(result.rateDps)
+    );
+    return buffer;
+}
+
 bool parseUint(const char* text, long& value) {
     while (isspace(static_cast<unsigned char>(*text))) {
         text++;

@@ -1,6 +1,7 @@
 #include <CommandHandler.h>
 #include <ConnectionManager.h>
 #include <DistanceManager.h>
+#include <Imu.h>
 #include <SteeringManager.h>
 
 #define HEARTBEAT_PERIOD_MS 1000
@@ -8,8 +9,9 @@
 
 ConnectionManager connectionManager;
 DistanceManager distanceManager;
+Imu imu;
 SteeringManager steeringManager;
-CommandHandler commandHandler(steeringManager, distanceManager, connectionManager);
+CommandHandler commandHandler(steeringManager, distanceManager, connectionManager, imu);
 
 unsigned long previousHeartbeatMillis = 0;
 bool ledState = false;
@@ -28,6 +30,7 @@ void setup() {
     connectionManager.initOta();
     connectionManager.initWebsocket([](const String& message) { commandHandler.handle(message); });
     distanceManager.initAddresses();
+    imu.begin();  // after the VL53L0X boot, which starts Wire; stays offline (IMU_CHECK rejected) if absent
     distanceManager.setPoseProvider([]() { return steeringManager.getStampedPose(); });
     distanceManager.startMeasurementTask();  // Start measurement task on Core 0
     steeringManager.init();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ImuOrientation.h>
 #include <Odometry.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -30,6 +31,9 @@ std::string formatCal(unsigned distanceMm, unsigned index, unsigned total, const
 
 // "CAL_DONE <distance_mm> <done>"
 std::string formatCalDone(unsigned distanceMm, unsigned done);
+
+// "IMU_ORIENT RESULT=<ok|tilted|...> UP=<+Z> YAW=<+Z> TILT=<deg> RATE=<deg/s>" (axes "?" if unknown).
+std::string formatImuOrient(const ImuOrientationCheck::Result& result);
 
 // Strict unsigned integer: optional surrounding whitespace, then digits only. Rejects empty, signed and
 // non-numeric text. Values too large for `long` saturate instead of wrapping.

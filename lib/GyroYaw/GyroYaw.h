@@ -38,6 +38,10 @@ class GyroYaw {
     float biasDps() const {
         return static_cast<float>(bias);
     }
+    // How many gaps between samples were too long to integrate (each one is lost rotation).
+    uint32_t skippedGaps() const {
+        return gapCount;
+    }
     // Zeroes the yaw (keeps the bias).
     void resetYaw() {
         yaw = 0.0;
@@ -47,6 +51,7 @@ class GyroYaw {
     bool isCalibrated = false;
     double bias = 0.0;  // deg/s
     double yaw = 0.0;   // rad, wrapped
+    uint32_t gapCount = 0;
 
     bool havePrevious = false;
     float previousRate = 0.0f;

@@ -15,6 +15,9 @@ void GyroYaw::update(float rateDps, uint32_t nowUs, bool stationary) {
         const uint32_t elapsedUs = nowUs - previousUs;  // wraparound safe
         const float dt = elapsedUs * 1e-6f;
         const bool integrate = !(settled && holdWindow);
+        if (integrate && dt > MAX_GAP_S) {
+            gapCount++;
+        }
         if (integrate && dt > 0.0f && dt <= MAX_GAP_S) {
             const double meanRate = 0.5 * (previousRate + rateDps) - bias;
             yaw += meanRate * dt * DEG_TO_RAD;

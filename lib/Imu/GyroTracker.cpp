@@ -17,13 +17,18 @@ void GyroTracker::task(void* parameter) {
     TickType_t lastWake = xTaskGetTickCount();
     bool wasCalibrated = false;
 #ifdef DEBUG_GYRO
-    uint8_t printTick = 0;
+    uint32_t lastPrintMs = millis();
+    uint32_t goodReads = 0;
+    uint32_t failedReads = 0;
 #endif
     for (;;) {
         vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(GYRO_PERIOD_MS));
 
         ImuSample sample;
         if (!tracker->imu.read(sample)) {
+#ifdef DEBUG_GYRO
+            failedReads++;
+#endif
             continue;  // a failed read is a gap; GyroYaw does not integrate across long gaps
         }
         const bool stationary = tracker->isStationary();
@@ -35,6 +40,9 @@ void GyroTracker::task(void* parameter) {
         const bool calibrated = tracker->gyro.calibrated();
         const float yaw = tracker->gyro.yawRad();
         const float bias = tracker->gyro.biasDps();
+#ifdef DEBUG_GYRO
+        const uint32_t gaps = tracker->gyro.skippedGaps();
+#endif
         xSemaphoreGive(tracker->mutex);
 
         if (calibrated && !wasCalibrated) {
@@ -42,9 +50,16 @@ void GyroTracker::task(void* parameter) {
         }
         wasCalibrated = calibrated;
 #ifdef DEBUG_GYRO
-        if (++printTick % 50 == 0) {
-            Serial.printf("GYRO yaw=%.2f deg bias=%.3f deg/s rate=%.2f deg/s%s\n", yaw * 57.2957795f, bias,
-                          yawRateDps(sample), calibrated ? "" : " (calibrating)");
+        goodReads++;
+        if (millis() - lastPrintMs >= 500) {
+            // Expect ~50 good reads per 500 ms and no failed reads or skipped gaps: each one is lost rotation.
+            Serial.printf("GYRO yaw=%.2f deg bias=%.3f deg/s rate=%.2f deg/s reads=%u failed=%u gaps=%u%s\n",
+                          yaw * 57.2957795f, bias, yawRateDps(sample), static_cast<unsigned>(goodReads),
+                          static_cast<unsigned>(failedReads), static_cast<unsigned>(gaps),
+                          calibrated ? "" : " (calibrating)");
+            lastPrintMs = millis();
+            goodReads = 0;
+            failedReads = 0;
         }
 #else
         (void)yaw;

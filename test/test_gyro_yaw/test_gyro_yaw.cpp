@@ -143,6 +143,7 @@ void test_a_long_gap_between_samples_is_not_integrated() {
     TEST_ASSERT_EQUAL_FLOAT(before, rig.yawDeg());  // the sample after the gap is not integrated
     rig.run(0.01f, 90.0f, false);
     TEST_ASSERT_FLOAT_WITHIN(0.1f, before + 0.9f, rig.yawDeg());  // normal integration resumes
+    TEST_ASSERT_EQUAL_UINT32(1, rig.gyro.skippedGaps());
 }
 
 void test_survives_the_microsecond_clock_wrapping() {

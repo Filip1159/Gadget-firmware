@@ -1,0 +1,390 @@
+Booting
+Ready
+IP address: 192.168.1.16
+BMI160 online at 0x68
+Gyro task started
+POSE x=-0.1 y=0.0 th=-0.001 (wheels)
+GYRO yaw=0.00 deg bias=0.000 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0 (calibrating)
+POSE x=0.0 y=0.0 th=0.000 (wheels)
+GYRO yaw=0.00 deg bias=0.000 deg/s rate=0.18 deg/s reads=51 failed=0 gaps=0 (calibrating)
+POSE x=0.0 y=0.0 th=0.000 (wheels)
+GYRO yaw=0.00 deg bias=0.000 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0 (calibrating)
+POSE x=0.0 y=0.0 th=0.000 (wheels)
+GYRO yaw=0.00 deg bias=0.000 deg/s rate=0.06 deg/s reads=50 failed=0 gaps=0 (calibrating)
+POSE x=0.0 y=0.0 th=0.000 (wheels)
+Gyro calibrated: bias 0.146 deg/s
+GYRO yaw=0.00 deg bias=0.146 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.000 (gyro)
+GYRO yaw=0.00 deg bias=0.146 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.000 (gyro)
+GYRO yaw=0.00 deg bias=0.148 deg/s rate=0.20 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.000 (gyro)
+GYRO yaw=0.00 deg bias=0.148 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.000 (gyro)
+GYRO yaw=0.00 deg bias=0.147 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.000 (gyro)
+GYRO yaw=0.00 deg bias=0.147 deg/s rate=0.18 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.000 (gyro)
+GYRO yaw=0.00 deg bias=0.145 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.000 (gyro)
+GYRO yaw=0.00 deg bias=0.145 deg/s rate=0.23 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.000 (gyro)
+GYRO yaw=0.00 deg bias=0.140 deg/s rate=1.01 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.027 (gyro)
+GYRO yaw=1.82 deg bias=0.140 deg/s rate=12.50 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.225 (gyro)
+GYRO yaw=13.51 deg bias=0.140 deg/s rate=31.04 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.554 (gyro)
+GYRO yaw=32.79 deg bias=0.140 deg/s rate=53.70 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.912 (gyro)
+GYRO yaw=53.00 deg bias=0.140 deg/s rate=38.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=1.239 (gyro)
+GYRO yaw=71.86 deg bias=0.140 deg/s rate=45.69 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=1.701 (gyro)
+GYRO yaw=98.51 deg bias=0.140 deg/s rate=53.41 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=2.153 (gyro)
+GYRO yaw=124.22 deg bias=0.140 deg/s rate=43.87 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=2.489 (gyro)
+GYRO yaw=143.48 deg bias=0.140 deg/s rate=45.08 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=2.954 (gyro)
+GYRO yaw=170.50 deg bias=0.140 deg/s rate=62.24 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=-2.853 (gyro)
+GYRO yaw=-162.39 deg bias=0.140 deg/s rate=56.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=-2.341 (gyro)
+GYRO yaw=-132.83 deg bias=0.140 deg/s rate=65.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=-1.826 (gyro)
+GYRO yaw=-103.42 deg bias=0.140 deg/s rate=59.63 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=-1.432 (gyro)
+GYRO yaw=-81.06 deg bias=0.140 deg/s rate=49.80 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=-0.974 (gyro)
+GYRO yaw=-54.57 deg bias=0.140 deg/s rate=60.96 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=-0.565 (gyro)
+GYRO yaw=-32.05 deg bias=0.140 deg/s rate=11.62 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=-0.204 (gyro)
+GYRO yaw=-10.89 deg bias=0.140 deg/s rate=37.84 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.017 (gyro)
+GYRO yaw=0.88 deg bias=0.140 deg/s rate=-4.13 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=-0.03 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.08 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.06 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.144 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.144 deg/s rate=0.21 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.18 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.144 deg/s rate=0.20 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.144 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.23 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.23 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.145 deg/s rate=0.06 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.145 deg/s rate=0.06 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+WebSocket connected
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.05 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.18 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.20 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.18 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.30 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.21 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.05 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.05 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.18 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.24 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.26 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.08 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.08 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.21 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.06 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.08 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.18 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.18 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.03 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.26 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.21 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.20 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.20 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=-0.08 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.21 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.21 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.137 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.137 deg/s rate=0.23 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.23 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.20 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.09 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.23 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.138 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.21 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.20 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.00 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.06 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.23 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.26 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.05 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.02 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.18 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.143 deg/s rate=0.03 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.18 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.142 deg/s rate=0.27 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.18 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.23 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.15 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.12 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.20 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.139 deg/s rate=0.17 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.21 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.141 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.24 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.14 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
+GYRO yaw=0.80 deg bias=0.140 deg/s rate=0.11 deg/s reads=50 failed=0 gaps=0
+POSE x=0.0 y=0.0 th=0.014 (gyro)
